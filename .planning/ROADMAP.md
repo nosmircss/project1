@@ -30,7 +30,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The app shows a loading indicator while weather data is being fetched, so the user is never left looking at a blank screen
   4. When the API is unreachable or the user enters an invalid zip code, the app displays a clear error message instead of crashing or showing raw error text
   5. The app window is resizable and maintains a professional, readable layout at different sizes
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 01-01-PLAN.md -- Scaffold electron-vite project and establish neon design system with Tailwind CSS v4
+- [ ] 01-02-PLAN.md -- Build data pipeline: zip lookup, Open-Meteo weather service, IPC bridge, shared types
+- [ ] 01-03-PLAN.md -- Build all UI components, wire with state management, human-verify complete flow
 
 ### Phase 2: Full Conditions + Settings
 **Goal**: Users can see the complete current conditions picture — wind, humidity, UV index, pressure, sunrise/sunset — and configure temperature and wind speed units that persist across restarts
@@ -82,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/3 | Planned | - |
 | 2. Full Conditions + Settings | 0/TBD | Not started | - |
 | 3. Auto-Refresh | 0/TBD | Not started | - |
 | 4. Hourly Forecast + Multi-Location | 0/TBD | Not started | - |
