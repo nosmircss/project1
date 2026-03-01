@@ -1,8 +1,10 @@
 import { app, shell, BrowserWindow, ipcMain, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { useConf } from 'electron-conf/main'
 import icon from '../../resources/icon.png?asset'
 import { fetchWeather } from './weather'
+import { conf } from './settings'
 
 function createWindow(): void {
   // Create the browser window.
@@ -58,9 +60,12 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // Weather fetch IPC handler — fetches from Open-Meteo in main process (Node.js)
-  ipcMain.handle('weather:fetch', async (_event, lat: number, lon: number) =>
-    fetchWeather(lat, lon)
+  // Register electron-conf IPC bridge BEFORE window creation
+  useConf()
+
+  // Updated weather:fetch — now accepts settings as 3rd arg
+  ipcMain.handle('weather:fetch', async (_event, lat: number, lon: number, settings?: { temperatureUnit: string; windSpeedUnit: string }) =>
+    fetchWeather(lat, lon, settings ?? { temperatureUnit: conf.get('temperatureUnit'), windSpeedUnit: conf.get('windSpeedUnit') })
   )
 
   ipcMain.on('ping', () => console.log('pong'))
