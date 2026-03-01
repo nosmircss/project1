@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 1 of 5 (Foundation)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-01 — Completed 01-01 (scaffold + neon design system)
+Last activity: 2026-03-01 — Completed 01-02 (data pipeline: zip lookup, Open-Meteo API, IPC bridge)
 
-Progress: [##░░░░░░░░] 7% (1 of ~15 total plans estimated)
+Progress: [###░░░░░░░] 13% (2 of ~15 total plans estimated)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 4 min
-- Total execution time: 0.07 hours
+- Total plans completed: 2
+- Average duration: 3.5 min
+- Total execution time: 0.12 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 1 done of 3 | 4min | 4min |
+| 01-foundation | 2 done of 3 | 7min | 3.5min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4min)
-- Trend: Baseline established
+- Last 5 plans: 01-01 (4min), 01-02 (3min)
+- Trend: On pace
 
 *Updated after each plan completion*
 
@@ -49,6 +49,10 @@ Recent decisions affecting current work:
 - [01-01]: Tailwind CSS v4 @tailwindcss/vite plugin works in renderer-only config — no PostCSS fallback needed
 - [01-01]: Google Fonts loaded via CDN (Inter, JetBrains Mono); CSP updated for fonts.googleapis.com + fonts.gstatic.com
 - [01-01]: BrowserWindow 600x700 default, 500x600 min, backgroundColor #0a0a12, contextIsolation: true, nodeIntegration: false
+- [01-02]: zipcodes-us uses default export with .find() method (not named lookupZip as RESEARCH suggested)
+- [01-02]: Range-based WMO code mapping (not equality) handles gap codes 4-44, 58-60, 68-70, 78-79, 83-84, 87-94 safely
+- [01-02]: IPC channel convention: 'weather:fetch' (namespace:verb pattern for future channels)
+- [01-02]: Vitest with node environment for renderer lib tests (no DOM needed for pure TS functions)
 
 ### Pending Todos
 
@@ -62,5 +66,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 01-01-PLAN.md (scaffold + neon design system)
-Resume file: .planning/phases/01-foundation/01-01-SUMMARY.md
+Stopped at: Completed 01-02-PLAN.md (data pipeline: zip lookup, Open-Meteo API, IPC bridge)
+Resume file: .planning/phases/01-foundation/01-02-SUMMARY.md

@@ -9,8 +9,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Current Conditions
 
-- [ ] **COND-01**: User can view current temperature and feels-like temperature for active location
-- [ ] **COND-02**: User can view sky conditions with a visual weather icon (sunny, cloudy, rain, snow, etc.)
+- [x] **COND-01**: User can view current temperature and feels-like temperature for active location
+- [x] **COND-02**: User can view sky conditions with a visual weather icon (sunny, cloudy, rain, snow, etc.)
 - [ ] **COND-03**: User can view wind speed, wind direction, and humidity percentage
 - [ ] **COND-04**: User can view UV index for active location
 - [ ] **COND-05**: User can view atmospheric pressure for active location
@@ -24,11 +24,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Location Management
 
-- [ ] **LOC-01**: User can add a location by entering a US zip code
+- [x] **LOC-01**: User can add a location by entering a US zip code
 - [ ] **LOC-02**: User can save multiple locations that persist across app restarts
 - [ ] **LOC-03**: User can switch between saved locations with one click
 - [ ] **LOC-04**: User can delete a saved location
-- [ ] **LOC-05**: App resolves zip code to city name and state (displays "Denver, CO" not "80202")
+- [x] **LOC-05**: App resolves zip code to city name and state (displays "Denver, CO" not "80202")
 
 ### Auto-Refresh
 
@@ -90,8 +90,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COND-01 | Phase 1 | Pending |
-| COND-02 | Phase 1 | Pending |
+| COND-01 | Phase 1 | Complete |
+| COND-02 | Phase 1 | Complete |
 | COND-03 | Phase 2 | Pending |
 | COND-04 | Phase 2 | Pending |
 | COND-05 | Phase 2 | Pending |
@@ -99,11 +99,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HOUR-01 | Phase 4 | Pending |
 | HOUR-02 | Phase 4 | Pending |
 | HOUR-03 | Phase 4 | Pending |
-| LOC-01 | Phase 1 | Pending |
+| LOC-01 | Phase 1 | Complete |
 | LOC-02 | Phase 4 | Pending |
 | LOC-03 | Phase 4 | Pending |
 | LOC-04 | Phase 4 | Pending |
-| LOC-05 | Phase 1 | Pending |
+| LOC-05 | Phase 1 | Complete |
 | REFR-01 | Phase 3 | Pending |
 | REFR-02 | Phase 3 | Pending |
 | REFR-03 | Phase 3 | Pending |
