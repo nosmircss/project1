@@ -1,7 +1,6 @@
 import { app, shell, BrowserWindow, ipcMain, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { useConf } from 'electron-conf/main'
 import icon from '../../resources/icon.png?asset'
 import { fetchWeather } from './weather'
 import { conf } from './settings'
@@ -60,13 +59,16 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // Register electron-conf IPC bridge BEFORE window creation
-  useConf()
-
   // Updated weather:fetch — now accepts settings as 3rd arg
   ipcMain.handle('weather:fetch', async (_event, lat: number, lon: number, settings?: { temperatureUnit: string; windSpeedUnit: string }) =>
     fetchWeather(lat, lon, settings ?? { temperatureUnit: conf.get('temperatureUnit'), windSpeedUnit: conf.get('windSpeedUnit') })
   )
+
+  // Settings IPC — uses main-process conf singleton directly
+  ipcMain.handle('settings:get', (_event, key: string) => conf.get(key as keyof typeof conf.store))
+  ipcMain.handle('settings:set', (_event, key: string, value: unknown) => {
+    conf.set(key as keyof typeof conf.store, value as never)
+  })
 
   ipcMain.on('ping', () => console.log('pong'))
 

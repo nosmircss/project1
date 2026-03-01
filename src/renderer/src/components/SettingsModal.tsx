@@ -47,15 +47,11 @@ export function SettingsModal({ settings, onUpdate, onClose }: SettingsModalProp
   }
 
   return (
-    <>
-      {/* Backdrop — click to close */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
       <div
-        className="fixed inset-0 bg-black/60 z-40"
-        onClick={onClose}
-      />
-      {/* Centered modal card */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="bg-bg-card border border-neon-cyan/30 rounded-lg p-6 w-80 shadow-[0_0_24px_rgba(0,240,255,0.2)]">
+        className="bg-bg-card border border-neon-cyan/30 rounded-lg p-6 w-80 shadow-[0_0_24px_rgba(0,240,255,0.2)]"
+        onClick={(e) => e.stopPropagation()}
+      >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-neon-cyan font-mono text-lg tracking-wide neon-text-glow-cyan">
@@ -112,6 +108,5 @@ export function SettingsModal({ settings, onUpdate, onClose }: SettingsModalProp
           </div>
         </div>
       </div>
-    </>
   )
 }
