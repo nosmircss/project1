@@ -3,7 +3,7 @@ import { WeatherIcon } from './WeatherIcon'
 import { TemperatureHero } from './TemperatureHero'
 import { WeatherSkeleton } from './SkeletonLoader'
 import { ErrorCard } from './ErrorCard'
-import type { WeatherData } from '../lib/types'
+import type { WeatherData, AppSettings } from '../lib/types'
 
 interface WeatherPanelProps {
   loading: boolean
@@ -11,6 +11,9 @@ interface WeatherPanelProps {
   error: string | null
   locationName: string
   refetch: () => void
+  // Optional — consumed by SettingsModal in Plan 02-03
+  settings?: AppSettings
+  onSettingsChange?: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => Promise<void>
 }
 
 /**

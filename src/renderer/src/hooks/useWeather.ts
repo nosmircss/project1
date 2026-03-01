@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import type { LocationInfo, WeatherData } from '../lib/types'
+import type { LocationInfo, WeatherData, AppSettings } from '../lib/types'
 
 interface UseWeatherResult {
   weather: WeatherData | null
@@ -12,12 +12,18 @@ interface UseWeatherResult {
  * Custom hook for weather data fetching with silent retry logic.
  * Per user decision: auto-retry 2x before surfacing error with exponential backoff.
  * Per user decision on stale data: keep last successful data if refresh fails, show warning.
+ * Settings-aware: refetches automatically when temperatureUnit or windSpeedUnit changes.
  */
-async function fetchWithRetry(lat: number, lon: number, maxRetries = 2): Promise<WeatherData> {
+async function fetchWithRetry(
+  lat: number,
+  lon: number,
+  settings: Pick<AppSettings, 'temperatureUnit' | 'windSpeedUnit'>,
+  maxRetries = 2
+): Promise<WeatherData> {
   let lastError: Error = new Error('Unknown error')
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      return await window.electronAPI.fetchWeather(lat, lon)
+      return await window.electronAPI.fetchWeather(lat, lon, settings)
     } catch (err) {
       lastError = err as Error
       if (attempt < maxRetries) {
@@ -28,7 +34,10 @@ async function fetchWithRetry(lat: number, lon: number, maxRetries = 2): Promise
   throw lastError
 }
 
-export function useWeather(location: LocationInfo | null): UseWeatherResult {
+export function useWeather(
+  location: LocationInfo | null,
+  settings: Pick<AppSettings, 'temperatureUnit' | 'windSpeedUnit'>
+): UseWeatherResult {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,7 +47,7 @@ export function useWeather(location: LocationInfo | null): UseWeatherResult {
     setLoading(true)
     setError(null)
     try {
-      const data = await fetchWithRetry(location.lat, location.lon)
+      const data = await fetchWithRetry(location.lat, location.lon, settings)
       setWeather(data)
       setError(null)
     } catch {
@@ -46,7 +55,7 @@ export function useWeather(location: LocationInfo | null): UseWeatherResult {
     } finally {
       setLoading(false)
     }
-  }, [location?.lat, location?.lon]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location?.lat, location?.lon, settings.temperatureUnit, settings.windSpeedUnit]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (location) {
@@ -56,13 +65,13 @@ export function useWeather(location: LocationInfo | null): UseWeatherResult {
       setError(null)
       setLoading(false)
     }
-  }, [location?.lat, location?.lon]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location?.lat, location?.lon, settings.temperatureUnit, settings.windSpeedUnit]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const refetch = useCallback(() => {
     setError(null)
     setLoading(true)
     if (!location) return
-    fetchWithRetry(location.lat, location.lon)
+    fetchWithRetry(location.lat, location.lon, settings)
       .then((data) => {
         setWeather(data)
         setError(null)
@@ -78,7 +87,7 @@ export function useWeather(location: LocationInfo | null): UseWeatherResult {
       .finally(() => {
         setLoading(false)
       })
-  }, [location, weather])
+  }, [location, weather, settings.temperatureUnit, settings.windSpeedUnit])
 
   return { weather, loading, error, refetch }
 }

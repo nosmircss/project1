@@ -3,6 +3,6 @@
 interface Window {
   electron: import('@electron-toolkit/preload').ElectronAPI
   electronAPI: {
-    fetchWeather: (lat: number, lon: number) => Promise<import('./lib/types').WeatherData>
+    fetchWeather: (lat: number, lon: number, settings?: { temperatureUnit: string; windSpeedUnit: string }) => Promise<import('./lib/types').WeatherData>
   }
 }
