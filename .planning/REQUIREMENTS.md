@@ -11,10 +11,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **COND-01**: User can view current temperature and feels-like temperature for active location
 - [x] **COND-02**: User can view sky conditions with a visual weather icon (sunny, cloudy, rain, snow, etc.)
-- [ ] **COND-03**: User can view wind speed, wind direction, and humidity percentage
-- [ ] **COND-04**: User can view UV index for active location
-- [ ] **COND-05**: User can view atmospheric pressure for active location
-- [ ] **COND-06**: User can view sunrise and sunset times for active location
+- [x] **COND-03**: User can view wind speed, wind direction, and humidity percentage
+- [x] **COND-04**: User can view UV index for active location
+- [x] **COND-05**: User can view atmospheric pressure for active location
+- [x] **COND-06**: User can view sunrise and sunset times for active location
 
 ### Hourly Forecast
 
@@ -47,9 +47,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Settings
 
-- [ ] **SET-01**: User can toggle temperature units between Fahrenheit and Celsius
-- [ ] **SET-02**: User can toggle wind speed units between mph and km/h
-- [ ] **SET-03**: User can configure the auto-refresh interval
+- [x] **SET-01**: User can toggle temperature units between Fahrenheit and Celsius
+- [x] **SET-02**: User can toggle wind speed units between mph and km/h
+- [x] **SET-03**: User can configure the auto-refresh interval
 
 ## v2 Requirements
 
@@ -92,10 +92,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | COND-01 | Phase 1 | Complete |
 | COND-02 | Phase 1 | Complete |
-| COND-03 | Phase 2 | Pending |
-| COND-04 | Phase 2 | Pending |
-| COND-05 | Phase 2 | Pending |
-| COND-06 | Phase 2 | Pending |
+| COND-03 | Phase 2 | Complete |
+| COND-04 | Phase 2 | Complete |
+| COND-05 | Phase 2 | Complete |
+| COND-06 | Phase 2 | Complete |
 | HOUR-01 | Phase 4 | Pending |
 | HOUR-02 | Phase 4 | Pending |
 | HOUR-03 | Phase 4 | Pending |
@@ -113,9 +113,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-04 | Phase 1 | Complete |
 | UI-05 | Phase 5 | Pending |
 | UI-06 | Phase 5 | Pending |
-| SET-01 | Phase 2 | Pending |
-| SET-02 | Phase 2 | Pending |
-| SET-03 | Phase 2 | Pending |
+| SET-01 | Phase 2 | Complete |
+| SET-02 | Phase 2 | Complete |
+| SET-03 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 26 total
