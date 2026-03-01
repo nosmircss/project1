@@ -45,7 +45,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can toggle temperature display between Fahrenheit and Celsius — the change applies immediately and persists after the app is restarted
   4. User can toggle wind speed between mph and km/h — the change applies immediately and persists after restart
   5. User can open a settings panel and configure the auto-refresh interval — the saved value persists after restart
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 02-01-PLAN.md — Expand data layer: weather types, settings.ts, electron-conf three-layer wiring, IPC update
+- [ ] 02-02-PLAN.md — Settings hook (useSettings), settings-aware useWeather, App.tsx settings gate
+- [ ] 02-03-PLAN.md — UI components: ConditionCard, ConditionsGrid, SettingsModal, WeatherPanel update, human verify
 
 ### Phase 3: Auto-Refresh
 **Goal**: Weather data updates automatically on a configurable interval driven by the main process, with a visible last-updated timestamp and countdown so the user always knows how fresh the data is
@@ -86,7 +90,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-01 |
-| 2. Full Conditions + Settings | 0/TBD | Not started | - |
+| 2. Full Conditions + Settings | 0/3 | Not started | - |
 | 3. Auto-Refresh | 0/TBD | Not started | - |
 | 4. Hourly Forecast + Multi-Location | 0/TBD | Not started | - |
 | 5. Visual Polish + Distribution | 0/TBD | Not started | - |
