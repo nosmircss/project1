@@ -90,7 +90,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-01 |
-| 2. Full Conditions + Settings | 2/3 | In Progress|  |
+| 2. Full Conditions + Settings | 3/3 | Complete   | 2026-03-01 |
 | 3. Auto-Refresh | 0/TBD | Not started | - |
 | 4. Hourly Forecast + Multi-Location | 0/TBD | Not started | - |
 | 5. Visual Polish + Distribution | 0/TBD | Not started | - |
