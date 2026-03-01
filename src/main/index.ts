@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { fetchWeather } from './weather'
 
 function createWindow(): void {
   // Create the browser window.
@@ -57,7 +58,11 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC handlers will be added in later phases
+  // Weather fetch IPC handler — fetches from Open-Meteo in main process (Node.js)
+  ipcMain.handle('weather:fetch', async (_event, lat: number, lon: number) =>
+    fetchWeather(lat, lon)
+  )
+
   ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
