@@ -12,7 +12,7 @@ WeatherDeck is built in five phases, each delivering a coherent, verifiable capa
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Electron scaffold, neon design system, geocoding, basic conditions display, error/loading states
+- [ ] **Phase 1: Foundation** - Electron scaffold, neon design system, geocoding, basic conditions display, error/loading states (in progress: 1/3 plans done)
 - [ ] **Phase 2: Full Conditions + Settings** - Complete current conditions data, temperature/wind unit toggles, settings persistence
 - [ ] **Phase 3: Auto-Refresh** - Main-process scheduler, configurable interval, last-updated display and countdown
 - [ ] **Phase 4: Hourly Forecast + Multi-Location** - 12-24 hour forecast view, saved location management, one-click switching
@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. When the API is unreachable or the user enters an invalid zip code, the app displays a clear error message instead of crashing or showing raw error text
   5. The app window is resizable and maintains a professional, readable layout at different sizes
 **Plans**: 3 plans
-- [ ] 01-01-PLAN.md -- Scaffold electron-vite project and establish neon design system with Tailwind CSS v4
+- [x] 01-01-PLAN.md -- Scaffold electron-vite project and establish neon design system with Tailwind CSS v4
 - [ ] 01-02-PLAN.md -- Build data pipeline: zip lookup, Open-Meteo weather service, IPC bridge, shared types
 - [ ] 01-03-PLAN.md -- Build all UI components, wire with state management, human-verify complete flow
 
@@ -85,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Planned | - |
+| 1. Foundation | 1/3 | In progress | - |
 | 2. Full Conditions + Settings | 0/TBD | Not started | - |
 | 3. Auto-Refresh | 0/TBD | Not started | - |
 | 4. Hourly Forecast + Multi-Location | 0/TBD | Not started | - |
