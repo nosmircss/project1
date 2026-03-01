@@ -1,1 +1,87 @@
 @import "tailwindcss";
+
+@theme {
+  --color-neon-cyan: #00f0ff;
+  --color-neon-magenta: #ff00e5;
+  --color-neon-cyan-dim: #00f0ff80;
+  --color-neon-magenta-dim: #ff00e580;
+  --color-bg-dark: #0a0a12;
+  --color-bg-panel: #0f0f1e;
+  --color-bg-sidebar: #080812;
+  --color-bg-card: #12122a;
+  --color-border-neon: #00f0ff30;
+  --color-border-neon-bright: #00f0ff60;
+  --color-text-primary: #e0e0ff;
+  --color-text-secondary: #8888aa;
+  --color-text-dim: #555577;
+  --color-error: #ff4444;
+  --color-error-dim: #ff444480;
+  --color-warning: #ffaa00;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@utility neon-glow-cyan {
+  box-shadow:
+    0 0 4px #00f0ff,
+    0 0 12px #00f0ff80,
+    0 0 24px #00f0ff40;
+}
+
+@utility neon-glow-magenta {
+  box-shadow:
+    0 0 4px #ff00e5,
+    0 0 12px #ff00e580,
+    0 0 24px #ff00e540;
+}
+
+@utility neon-glow-error {
+  box-shadow:
+    0 0 4px #ff4444,
+    0 0 12px #ff444480,
+    0 0 24px #ff444440;
+}
+
+@utility neon-text-glow-cyan {
+  text-shadow:
+    0 0 8px #00f0ff,
+    0 0 20px #00f0ff80;
+}
+
+@utility neon-text-glow-magenta {
+  text-shadow:
+    0 0 8px #ff00e5,
+    0 0 20px #ff00e580;
+}
+
+@utility cyber-grid {
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Base styles */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0a0a12;
+  color: #e0e0ff;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+/* Scrollbar styling for neon theme */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #080812;
+}
+::-webkit-scrollbar-thumb {
+  background: #00f0ff40;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00f0ff80;
+}
