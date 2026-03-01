@@ -90,38 +90,38 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COND-01 | TBD | Pending |
-| COND-02 | TBD | Pending |
-| COND-03 | TBD | Pending |
-| COND-04 | TBD | Pending |
-| COND-05 | TBD | Pending |
-| COND-06 | TBD | Pending |
-| HOUR-01 | TBD | Pending |
-| HOUR-02 | TBD | Pending |
-| HOUR-03 | TBD | Pending |
-| LOC-01 | TBD | Pending |
-| LOC-02 | TBD | Pending |
-| LOC-03 | TBD | Pending |
-| LOC-04 | TBD | Pending |
-| LOC-05 | TBD | Pending |
-| REFR-01 | TBD | Pending |
-| REFR-02 | TBD | Pending |
-| REFR-03 | TBD | Pending |
-| UI-01 | TBD | Pending |
-| UI-02 | TBD | Pending |
-| UI-03 | TBD | Pending |
-| UI-04 | TBD | Pending |
-| UI-05 | TBD | Pending |
-| UI-06 | TBD | Pending |
-| SET-01 | TBD | Pending |
-| SET-02 | TBD | Pending |
-| SET-03 | TBD | Pending |
+| COND-01 | Phase 1 | Pending |
+| COND-02 | Phase 1 | Pending |
+| COND-03 | Phase 2 | Pending |
+| COND-04 | Phase 2 | Pending |
+| COND-05 | Phase 2 | Pending |
+| COND-06 | Phase 2 | Pending |
+| HOUR-01 | Phase 4 | Pending |
+| HOUR-02 | Phase 4 | Pending |
+| HOUR-03 | Phase 4 | Pending |
+| LOC-01 | Phase 1 | Pending |
+| LOC-02 | Phase 4 | Pending |
+| LOC-03 | Phase 4 | Pending |
+| LOC-04 | Phase 4 | Pending |
+| LOC-05 | Phase 1 | Pending |
+| REFR-01 | Phase 3 | Pending |
+| REFR-02 | Phase 3 | Pending |
+| REFR-03 | Phase 3 | Pending |
+| UI-01 | Phase 1 | Pending |
+| UI-02 | Phase 1 | Pending |
+| UI-03 | Phase 1 | Pending |
+| UI-04 | Phase 1 | Pending |
+| UI-05 | Phase 5 | Pending |
+| UI-06 | Phase 5 | Pending |
+| SET-01 | Phase 2 | Pending |
+| SET-02 | Phase 2 | Pending |
+| SET-03 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 26 total
-- Mapped to phases: 0
-- Unmapped: 26 (will be mapped during roadmap creation)
+- Mapped to phases: 26
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-01*
-*Last updated: 2026-03-01 after initial definition*
+*Last updated: 2026-03-01 after roadmap creation — all 26 requirements mapped*
