@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-03-01T15:47:42.011Z"
+progress:
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
+---
+
 # Project State
 
 ## Project Reference
@@ -53,6 +66,9 @@ Recent decisions affecting current work:
 - [01-02]: Range-based WMO code mapping (not equality) handles gap codes 4-44, 58-60, 68-70, 78-79, 83-84, 87-94 safely
 - [01-02]: IPC channel convention: 'weather:fetch' (namespace:verb pattern for future channels)
 - [01-02]: Vitest with node environment for renderer lib tests (no DOM needed for pure TS functions)
+- [Phase 01-03]: filter drop-shadow() on WeatherIcon (not box-shadow) so glow follows SVG icon paths
+- [Phase 01-03]: useWeather preserves stale WeatherData on refresh failure — shows warning, not blank screen
+- [Phase 01-03]: WelcomeScreen fills entire window on first launch (no sidebar visible)
 
 ### Pending Todos
 

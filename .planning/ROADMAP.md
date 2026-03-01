@@ -12,7 +12,7 @@ WeatherDeck is built in five phases, each delivering a coherent, verifiable capa
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Electron scaffold, neon design system, geocoding, basic conditions display, error/loading states (in progress: 1/3 plans done)
+- [x] **Phase 1: Foundation** - Electron scaffold, neon design system, geocoding, basic conditions display, error/loading states (in progress: 1/3 plans done) (completed 2026-03-01)
 - [ ] **Phase 2: Full Conditions + Settings** - Complete current conditions data, temperature/wind unit toggles, settings persistence
 - [ ] **Phase 3: Auto-Refresh** - Main-process scheduler, configurable interval, last-updated display and countdown
 - [ ] **Phase 4: Hourly Forecast + Multi-Location** - 12-24 hour forecast view, saved location management, one-click switching
@@ -85,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 2/3 | In Progress|  |
+| 1. Foundation | 3/3 | Complete   | 2026-03-01 |
 | 2. Full Conditions + Settings | 0/TBD | Not started | - |
 | 3. Auto-Refresh | 0/TBD | Not started | - |
 | 4. Hourly Forecast + Multi-Location | 0/TBD | Not started | - |

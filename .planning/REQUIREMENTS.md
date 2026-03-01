@@ -40,8 +40,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **UI-01**: App uses a dark theme with neon cyan/blue glow accents (sci-fi aesthetic)
 - [x] **UI-02**: App displays in a standard resizable window with professional layout
-- [ ] **UI-03**: App shows loading states while fetching weather data
-- [ ] **UI-04**: App shows error states for API failures or no internet connection
+- [x] **UI-03**: App shows loading states while fetching weather data
+- [x] **UI-04**: App shows error states for API failures or no internet connection
 - [ ] **UI-05**: App displays animated weather particle effects (rain drops, snow flakes, etc.) matching current conditions
 - [ ] **UI-06**: App uses smooth transitions when switching between locations
 
@@ -109,8 +109,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REFR-03 | Phase 3 | Pending |
 | UI-01 | Phase 1 | Complete |
 | UI-02 | Phase 1 | Complete |
-| UI-03 | Phase 1 | Pending |
-| UI-04 | Phase 1 | Pending |
+| UI-03 | Phase 1 | Complete |
+| UI-04 | Phase 1 | Complete |
 | UI-05 | Phase 5 | Pending |
 | UI-06 | Phase 5 | Pending |
 | SET-01 | Phase 2 | Pending |
