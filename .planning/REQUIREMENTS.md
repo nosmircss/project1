@@ -75,26 +75,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REFR-01 | TBD | Pending |
-| REFR-02 | TBD | Pending |
-| REFR-03 | TBD | Pending |
-| HOUR-01 | TBD | Pending |
-| HOUR-02 | TBD | Pending |
-| HOUR-03 | TBD | Pending |
-| LOC-01 | TBD | Pending |
-| LOC-02 | TBD | Pending |
-| LOC-03 | TBD | Pending |
-| LOC-04 | TBD | Pending |
-| VISL-01 | TBD | Pending |
-| VISL-02 | TBD | Pending |
-| DIST-01 | TBD | Pending |
-| DIST-02 | TBD | Pending |
+| REFR-01 | Phase 4 | Pending |
+| REFR-02 | Phase 4 | Pending |
+| REFR-03 | Phase 4 | Pending |
+| HOUR-01 | Phase 4 | Pending |
+| HOUR-02 | Phase 4 | Pending |
+| HOUR-03 | Phase 4 | Pending |
+| LOC-01 | Phase 3 | Pending |
+| LOC-02 | Phase 3 | Pending |
+| LOC-03 | Phase 3 | Pending |
+| LOC-04 | Phase 3 | Pending |
+| VISL-01 | Phase 5 | Pending |
+| VISL-02 | Phase 5 | Pending |
+| DIST-01 | Phase 6 | Pending |
+| DIST-02 | Phase 6 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 14 total
-- Mapped to phases: 0
-- Unmapped: 14 ⚠️
+- Mapped to phases: 14
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-01*
-*Last updated: 2026-03-01 after initial definition*
+*Last updated: 2026-03-01 — traceability filled after roadmap creation*
