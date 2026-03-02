@@ -4,6 +4,8 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { fetchWeather } from './weather'
 import { conf } from './settings'
+import { locationsConf } from './locations'
+import type { LocationInfo } from '../renderer/src/lib/types'
 
 function createWindow(): void {
   // Create the browser window.
@@ -69,6 +71,32 @@ app.whenReady().then(() => {
   ipcMain.handle('settings:set', (_event, key: string, value: unknown) => {
     conf.set(key as keyof typeof conf.store, value as never)
   })
+
+  // Locations IPC — uses locationsConf singleton
+  ipcMain.handle('locations:get-all', () => locationsConf.get('locations'))
+
+  ipcMain.handle('locations:add', (_event, location: LocationInfo) => {
+    const current = locationsConf.get('locations')
+    if (current.some((l) => l.zip === location.zip)) return { error: 'duplicate' }
+    locationsConf.set('locations', [...current, location])
+    locationsConf.set('hasLaunched', true)
+    locationsConf.set('lastActiveZip', location.zip)
+    return { ok: true }
+  })
+
+  ipcMain.handle('locations:delete', (_event, zip: string) => {
+    const current = locationsConf.get('locations')
+    locationsConf.set('locations', current.filter((l) => l.zip !== zip))
+  })
+
+  ipcMain.handle('locations:set-active', (_event, zip: string | null) => {
+    locationsConf.set('lastActiveZip', zip)
+  })
+
+  ipcMain.handle('locations:get-meta', () => ({
+    lastActiveZip: locationsConf.get('lastActiveZip'),
+    hasLaunched: locationsConf.get('hasLaunched')
+  }))
 
   ipcMain.on('ping', () => console.log('pong'))
 
