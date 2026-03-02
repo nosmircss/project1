@@ -7,18 +7,22 @@ interface SidebarProps {
   activeIndex: number
   onSelect: (index: number) => void
   onAdd: (location: LocationInfo) => void
+  onDelete: (zip: string) => void
 }
 
 /**
- * Location list sidebar with +Add inline zip input.
+ * Location list sidebar with +Add inline zip input and hover delete button.
  * Per user decision: "+Add button opens an inline input field in the sidebar"
  * Per user decision: "Valid zip auto-navigates to the new location"
+ * Per user decision: "Delete X appears on hover for ALL locations (including active)"
+ * Per user decision: "No confirmation dialog — instant delete on click"
  */
 export function Sidebar({
   locations,
   activeIndex,
   onSelect,
-  onAdd
+  onAdd,
+  onDelete
 }: SidebarProps): React.JSX.Element {
   const [showAddInput, setShowAddInput] = useState(false)
   const [addZip, setAddZip] = useState('')
@@ -29,6 +33,11 @@ export function Sidebar({
     const location = resolveZip(addZip)
     if (!location) {
       setAddError('Invalid zip code')
+      return
+    }
+    // Check for duplicate before calling onAdd
+    if (locations.some((l) => l.zip === location.zip)) {
+      setAddError('Already saved')
       return
     }
     setAddError(null)
@@ -70,28 +79,42 @@ export function Sidebar({
       <div className="flex-1 px-3 py-4 overflow-y-auto">
         <div className="space-y-1">
           {locations.map((loc, idx) => (
-            <button
-              key={loc.zip}
-              onClick={() => onSelect(idx)}
-              className={[
-                'w-full text-left flex items-center gap-2 px-2 py-2 rounded transition-colors cursor-pointer',
-                idx === activeIndex
-                  ? 'bg-neon-cyan/10 border-l-2 border-neon-cyan pl-[6px]'
-                  : 'border-l-2 border-transparent hover:bg-neon-cyan/5'
-              ].join(' ')}
-            >
-              {idx === activeIndex && (
-                <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan neon-glow-cyan shrink-0" />
-              )}
-              <span
+            <div key={loc.zip} className="group relative">
+              <button
+                onClick={() => onSelect(idx)}
                 className={[
-                  'font-mono text-xs truncate',
-                  idx === activeIndex ? 'text-neon-cyan' : 'text-text-primary'
+                  'w-full text-left flex items-center gap-2 px-2 py-2 rounded transition-colors cursor-pointer pr-7',
+                  idx === activeIndex
+                    ? 'bg-neon-cyan/10 border-l-2 border-neon-cyan pl-[6px]'
+                    : 'border-l-2 border-transparent hover:bg-neon-cyan/5'
                 ].join(' ')}
               >
-                {loc.displayName}
-              </span>
-            </button>
+                {idx === activeIndex && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan neon-glow-cyan shrink-0" />
+                )}
+                <span
+                  className={[
+                    'font-mono text-xs truncate',
+                    idx === activeIndex ? 'text-neon-cyan' : 'text-text-primary'
+                  ].join(' ')}
+                >
+                  {loc.displayName}
+                </span>
+              </button>
+
+              {/* Delete button — hover reveal, neon-red glow on hover */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(loc.zip)
+                }}
+                aria-label={`Delete ${loc.displayName}`}
+                className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded font-mono text-sm opacity-0 group-hover:opacity-100 transition-opacity text-text-dim hover:text-error hover:neon-glow-error cursor-pointer"
+              >
+                {'\u00d7'}
+              </button>
+            </div>
           ))}
         </div>
 
