@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Feature Complete
 status: in_progress
-last_updated: "2026-03-02T23:28:11Z"
+last_updated: "2026-03-02T23:32:00Z"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 8
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 3 of 6 (Location Persistence)
-Plan: 1 of 2 complete
-Status: In progress — Plan 03-01 complete, Plan 03-02 (frontend) next
-Last activity: 2026-03-02 — Completed 03-01 location persistence data layer
+Plan: 2 of 2 complete (awaiting human-verify checkpoint Task 3)
+Status: In progress — Plans 03-01 and 03-02 code complete, Task 3 checkpoint pending user verification
+Last activity: 2026-03-02 — Completed 03-02 location persistence frontend wiring
 
-Progress: [█░░░░░░░░░] 13% (v1.1 phases)
+Progress: [██░░░░░░░░] 25% (v1.1 phases)
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Progress: [█░░░░░░░░░] 13% (v1.1 phases)
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 03-location-persistence | 03-01 | 1min | 2 | 4 |
+| 03-location-persistence | 03-02 | 2min | 2 | 3 |
 
 *Updated after each plan completion*
 
@@ -61,6 +62,8 @@ Key patterns carried forward:
 - `import type` for LocationInfo in main/preload — type-only imports erased at compile time, safe for cross-process references
 - Inline object type in preload `addLocation` — preload isolated context, shape matches LocationInfo exactly
 - Duplicate zip returns `{ error: 'duplicate' }` object (not throw) — cleaner renderer error handling without try/catch on IPC
+- [Phase 03-location-persistence]: Active location tracked by zip string not array index — zip is stable across deletes
+- [Phase 03-location-persistence]: Empty-all-locations state shows sidebar with 'No locations saved' NOT WelcomeScreen
 
 ### Pending Todos
 
@@ -75,5 +78,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 03-01-PLAN.md — location persistence data layer done, ready for 03-02 (frontend)
+Stopped at: Completed 03-02-PLAN.md Tasks 1-2 — awaiting human verification at Task 3 checkpoint (location persistence lifecycle)
 Resume file: None
