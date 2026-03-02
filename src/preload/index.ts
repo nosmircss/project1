@@ -10,5 +10,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fetchWeather: (lat: number, lon: number, settings?: { temperatureUnit: string; windSpeedUnit: string }) =>
     ipcRenderer.invoke('weather:fetch', lat, lon, settings),
   getSetting: (key: string) => ipcRenderer.invoke('settings:get', key),
-  setSetting: (key: string, value: unknown) => ipcRenderer.invoke('settings:set', key, value)
+  setSetting: (key: string, value: unknown) => ipcRenderer.invoke('settings:set', key, value),
+  getLocations: () => ipcRenderer.invoke('locations:get-all'),
+  getLocationsMeta: () => ipcRenderer.invoke('locations:get-meta'),
+  addLocation: (location: { zip: string; city: string; stateCode: string; lat: number; lon: number; displayName: string }) =>
+    ipcRenderer.invoke('locations:add', location),
+  deleteLocation: (zip: string) => ipcRenderer.invoke('locations:delete', zip),
+  setActiveLocation: (zip: string | null) => ipcRenderer.invoke('locations:set-active', zip)
 })
