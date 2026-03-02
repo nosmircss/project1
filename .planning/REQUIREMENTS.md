@@ -21,7 +21,7 @@ Requirements for the v1.1 Feature Complete milestone. Each maps to roadmap phase
 
 ### Locations
 
-- [ ] **LOC-01**: User can save multiple zip code locations that persist across app restarts
+- [x] **LOC-01**: User can save multiple zip code locations that persist across app restarts
 - [ ] **LOC-02**: User can switch to any saved location with one click, and both current conditions and hourly forecast update immediately
 - [ ] **LOC-03**: User can delete a saved location — it is removed and no longer appears after restart
 - [ ] **LOC-04**: Deleting the active location selects the next available location or returns to the empty/welcome state
@@ -81,7 +81,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HOUR-01 | Phase 4 | Pending |
 | HOUR-02 | Phase 4 | Pending |
 | HOUR-03 | Phase 4 | Pending |
-| LOC-01 | Phase 3 | Pending |
+| LOC-01 | Phase 3 | Complete |
 | LOC-02 | Phase 3 | Pending |
 | LOC-03 | Phase 3 | Pending |
 | LOC-04 | Phase 3 | Pending |

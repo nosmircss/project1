@@ -41,7 +41,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
   2. User can switch to any saved location with one click, and both current conditions and hourly forecast update immediately to reflect that location
   3. User can delete any saved location — it disappears from the list and is absent after app restart
   4. Deleting the currently active location automatically selects the next available location, or returns to the empty/welcome state if no locations remain
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 03-01-PLAN.md — Location persistence data layer (electron-conf store, IPC handlers, preload bridge)
 - [ ] 03-02-PLAN.md — Frontend integration (useLocations hook, App.tsx routing, Sidebar delete, empty state)
@@ -84,7 +84,7 @@ Phases execute in numeric order: 3 → 4 → 5 → 6
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation | v1.0 | 3/3 | Complete | 2026-03-01 |
 | 2. Full Conditions + Settings | v1.0 | 3/3 | Complete | 2026-03-01 |
-| 3. Location Persistence | v1.1 | 0/2 | Planned | - |
+| 3. Location Persistence | 1/2 | In Progress|  | - |
 | 4. Hourly Forecast + Auto-Refresh | v1.1 | 0/TBD | Not started | - |
 | 5. Visual Polish | v1.1 | 0/TBD | Not started | - |
 | 6. Windows Installer | v1.1 | 0/TBD | Not started | - |

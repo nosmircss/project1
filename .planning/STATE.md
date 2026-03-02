@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Feature Complete
-status: roadmap_ready
-last_updated: "2026-03-01T20:00:00.000Z"
+status: in_progress
+last_updated: "2026-03-02T23:28:11Z"
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 8
+  completed_plans: 1
 ---
 
 # Project State
@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 3 of 6 (Location Persistence)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-01 — Roadmap created for v1.1 (phases 3-6)
+Plan: 1 of 2 complete
+Status: In progress — Plan 03-01 complete, Plan 03-02 (frontend) next
+Last activity: 2026-03-02 — Completed 03-01 location persistence data layer
 
-Progress: [░░░░░░░░░░] 0% (v1.1 phases)
+Progress: [█░░░░░░░░░] 13% (v1.1 phases)
 
 ## Performance Metrics
 
@@ -37,8 +37,12 @@ Progress: [░░░░░░░░░░] 0% (v1.1 phases)
 - Stats: 79 files, 1,625 LOC, 1 day
 
 **v1.1 Velocity:**
-- Total plans completed: 0
-- Average duration: —
+- Total plans completed: 1
+- Average duration: ~1 min
+
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 03-location-persistence | 03-01 | 1min | 2 | 4 |
 
 *Updated after each plan completion*
 
@@ -53,6 +57,11 @@ Key patterns carried forward:
 - Settings gate pattern for startup race conditions — v1.1 adds `locationsLoaded` gate same pattern
 - Neon design tokens via Tailwind v4 @theme
 
+**03-01 decisions:**
+- `import type` for LocationInfo in main/preload — type-only imports erased at compile time, safe for cross-process references
+- Inline object type in preload `addLocation` — preload isolated context, shape matches LocationInfo exactly
+- Duplicate zip returns `{ error: 'duplicate' }` object (not throw) — cleaner renderer error handling without try/catch on IPC
+
 ### Pending Todos
 
 None.
@@ -65,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-01
-Stopped at: Roadmap created — ready to plan Phase 3
+Last session: 2026-03-02
+Stopped at: Completed 03-01-PLAN.md — location persistence data layer done, ready for 03-02 (frontend)
 Resume file: None
