@@ -1,49 +1,58 @@
-import { useState } from 'react'
 import type { LocationInfo } from './lib/types'
 import { useWeather } from './hooks/useWeather'
 import { useSettings } from './hooks/useSettings'
+import { useLocations } from './hooks/useLocations'
 import { WelcomeScreen } from './components/WelcomeScreen'
 import { Sidebar } from './components/Sidebar'
 import { WeatherPanel } from './components/WeatherPanel'
 
 /**
  * Root application component.
- * Wires together WelcomeScreen (first launch), Sidebar, and WeatherPanel.
- * Per user decision: welcome screen shows when no locations exist (no sidebar).
- * Per user decision: valid zip auto-navigates to new location.
- * Settings-aware: loads settings from electron-conf first; gates weather fetch on loaded flag
- * to prevent double-fetch (stale-unit fetch before settings arrive).
+ * Three-state startup routing via useLocations:
+ *   1. !hasLaunched  → WelcomeScreen full-screen (true first launch, no sidebar)
+ *   2. hasLaunched && locations.length === 0 → Sidebar (empty) + empty state panel
+ *   3. hasLaunched && locations.length > 0   → Sidebar + WeatherPanel (normal)
+ *
+ * Weather fetch gated on BOTH settingsLoaded AND locationsLoaded to prevent
+ * race condition (stale-unit fetch before data arrives).
  */
 function App(): React.JSX.Element {
-  const [locations, setLocations] = useState<LocationInfo[]>([])
-  const [activeIndex, setActiveIndex] = useState(0)
-
-  // Load settings first — gate weather fetch on loaded flag to prevent double-fetch
   const { settings, loaded: settingsLoaded, updateSetting } = useSettings()
+  const {
+    locations,
+    activeZip,
+    hasLaunched,
+    loaded: locationsLoaded,
+    addLocation,
+    deleteLocation,
+    setActiveZip
+  } = useLocations()
 
-  const activeLocation = locations[activeIndex] ?? null
+  // Derive active location from zip string (not index — survives reorders)
+  const activeLocation = locations.find((l) => l.zip === activeZip) ?? locations[0] ?? null
 
-  // Only pass activeLocation when settings are loaded — prevents stale-unit fetch on startup
+  // Gate on both loaded flags — prevents double-fetch race condition (per RESEARCH.md Pitfall 3)
   const { weather, loading, error, refetch } = useWeather(
-    settingsLoaded ? activeLocation : null,
+    settingsLoaded && locationsLoaded ? activeLocation : null,
     settings
   )
 
-  const handleAdd = (location: LocationInfo) => {
-    setLocations((prev) => {
-      const newLocations = [...prev, location]
-      // Auto-navigate to newly added location
-      setActiveIndex(newLocations.length - 1)
-      return newLocations
-    })
+  const handleAdd = async (location: LocationInfo) => {
+    await addLocation(location)
+    // addLocation already performs optimistic state updates
   }
 
   const handleSelect = (index: number) => {
-    setActiveIndex(index)
+    const loc = locations[index]
+    if (loc) setActiveZip(loc.zip)
   }
 
-  // First launch: no locations yet — show welcome screen full-screen (no sidebar)
-  if (locations.length === 0) {
+  // Brief loading state while locations load from IPC — render nothing to avoid flash
+  if (!locationsLoaded) return <></>
+
+  // True first launch: WelcomeScreen full-screen, no sidebar
+  // hasLaunched remains false until the very first location is successfully saved
+  if (!hasLaunched) {
     return (
       <div className="h-screen flex bg-bg-dark cyber-grid overflow-hidden">
         <WelcomeScreen onLocationAdd={handleAdd} />
@@ -51,14 +60,37 @@ function App(): React.JSX.Element {
     )
   }
 
-  // Locations exist — show sidebar + main panel layout
+  // All locations deleted: sidebar stays visible with empty state
+  // Per locked decision: sidebar visible with "No locations saved" — NOT WelcomeScreen
+  if (locations.length === 0) {
+    return (
+      <div className="h-screen flex bg-bg-dark cyber-grid overflow-hidden">
+        <Sidebar
+          locations={[]}
+          activeIndex={-1}
+          onSelect={() => {}}
+          onAdd={handleAdd}
+          onDelete={deleteLocation}
+        />
+        <main className="flex-1 flex flex-col items-center justify-center">
+          <p className="font-mono text-text-secondary text-base mb-2">No locations saved</p>
+          <p className="font-mono text-text-dim text-sm">Add a zip code to get started</p>
+        </main>
+      </div>
+    )
+  }
+
+  // Normal: sidebar + weather panel
+  const activeIndex = locations.findIndex((l) => l.zip === activeZip)
+
   return (
     <div className="h-screen flex bg-bg-dark cyber-grid overflow-hidden">
       <Sidebar
         locations={locations}
-        activeIndex={activeIndex}
+        activeIndex={activeIndex >= 0 ? activeIndex : 0}
         onSelect={handleSelect}
         onAdd={handleAdd}
+        onDelete={deleteLocation}
       />
       <WeatherPanel
         loading={loading}
