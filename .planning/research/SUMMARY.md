@@ -1,232 +1,228 @@
 # Project Research Summary
 
-**Project:** WeatherDeck
-**Domain:** Windows desktop weather application (dark/neon sci-fi UI, multi-location, auto-refresh)
+**Project:** WeatherDeck v1.1
+**Domain:** Electron + React desktop weather app — feature increment on shipped v1.0
 **Researched:** 2026-03-01
-**Confidence:** MEDIUM-HIGH
+**Confidence:** HIGH
 
 ## Executive Summary
 
-WeatherDeck is a Windows desktop weather application with a distinctive dark/neon sci-fi aesthetic, multi-location support, and configurable auto-refresh. Experts build this class of app with Electron + React + TypeScript, using electron-vite 5.0 as the modern scaffold. The architecture is a strict three-process model: all network calls live in the Node.js main process, a typed preload bridge exposes a whitelist API to the renderer, and React components are purely reactive to IPC push events. The neon aesthetic must be established as a foundational design system from day one — retrofitting it later onto generic components is effectively a rewrite.
+WeatherDeck v1.1 is a six-feature increment on a fully-working Electron 39 + React 19 + TypeScript desktop weather app. The v1.0 architecture is stable and well-established: contextIsolation enforced, all IPC via a strict `namespace:verb` contextBridge pattern, electron-conf for persistence, and Open-Meteo as the data source (already wired). Research confirms that every v1.1 feature can be implemented as an extension of existing patterns with a single new runtime dependency (`motion` for location-switch animations). No architectural overhaul is required.
 
-The recommended data source is Open-Meteo (no API key, no credit card, 10,000 calls/day free), which eliminates the single largest onboarding and billing risk of the alternative (OpenWeatherMap One Call 3.0, which requires a credit card and charges overages if the user forgets to cap their daily limit). Zip code resolution is handled via a local static lookup table (`us-zips` npm package), avoiding any geocoding API dependency entirely. Persistence uses `electron-store` (JSON file in `userData/`), which is sufficient for the app's small settings surface: a list of saved locations and a refresh interval.
+The recommended approach is data-layer-first: extend the Open-Meteo fetch to include hourly data, add `locations:get`/`locations:set` IPC handlers for persistence, and introduce a `useAutoRefresh` hook — all before touching any UI components. This order eliminates the most dangerous class of mistakes (building UI on top of ephemeral state that disappears on restart). The particle animation system should use a custom canvas hook with `requestAnimationFrame`; third-party particle libraries are either unmaintained or not Electron-verified. The Windows installer only requires configuring the already-installed `electron-builder` — the `build:win` script exists and the primary risk is locking `appId` before distributing the first `.exe`.
 
-The top risks are: (1) API key exposure — always keep keys in the main process, never Vite-bundled into the renderer; (2) refresh timer implementation — use TanStack Query's `refetchInterval` in the renderer or a main-process `setInterval` with IPC push, never a bare `useEffect` timer without cleanup; (3) neon glow CSS performance — animate only `opacity`/`transform` on GPU-promoted pseudoelements, never animate `box-shadow` directly, as this triggers full repaints on integrated graphics. A Windows SmartScreen warning on distribution is expected for unsigned builds and should be communicated to users via install instructions.
+Three risks dominate the research: (1) the locations array is currently held in React `useState` only and is lost on every restart — this must be addressed first in v1.1; (2) the Open-Meteo hourly array starts at local midnight and must be sliced from the current hour, not displayed from index 0; and (3) canvas `requestAnimationFrame` loops must be cancelled in `useEffect` cleanup or CPU usage accumulates monotonically across location switches. All three have clear, low-cost mitigations already documented.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The recommended stack is Electron 40.x + React 18 + TypeScript 5 + Tailwind CSS 4 + electron-vite 5.0, with Open-Meteo as the weather API. TanStack Query v5 handles data fetching and configurable polling. Zustand 5 manages ephemeral renderer state (active location, UI state). `electron-store` 10.x handles persistent settings. This combination is well-documented, has mature tooling, and maps cleanly to all stated requirements.
-
-Notably, Open-Meteo is strongly preferred over OpenWeatherMap: it has no API key, no credit card requirement, and 10,000 free calls/day versus OWM's 1,000 (with credit card). The only tradeoff is that Open-Meteo does not natively accept zip codes — these must be resolved to lat/lon via the local `us-zips` package before calling the API.
-
-See `.planning/research/STACK.md` for full details, version requirements, and alternatives considered.
+The existing stack requires only one new runtime dependency for v1.1. All six features build on libraries already installed and validated. `motion` (the official successor to `framer-motion`, v12.34.3 as of 2026-03-01) is recommended for location-switch cross-fade animations because `AnimatePresence` handles the unmount-then-animate sequence that CSS transitions cannot cleanly produce. However, ARCHITECTURE.md documents a pure CSS opacity transition as a fully acceptable alternative — the recommendation is CSS-first, `motion` only if timing feels wrong in practice.
 
 **Core technologies:**
-- Electron 40.x: desktop shell — Chromium renderer ensures pixel-perfect CSS neon/glow effects, first-class Windows packaging
-- React 18 + TypeScript 5: UI framework — hooks model maps to reactive IPC state; type-safety across IPC boundary catches entire class of silent bugs
-- electron-vite 5.0: build tooling — modern standard, replaces webpack, HMR in renderer, proper main/preload/renderer separation
-- Tailwind CSS 4: styling — no config file, CSS variables native, arbitrary values make neon glow trivial (`shadow-[0_0_20px_#00f0ff]`)
-- Open-Meteo REST API: weather data — no key, no card, 10k calls/day, hourly forecast included
-- TanStack Query v5: data fetching and polling — `refetchInterval` for auto-refresh, built-in caching, stale-while-revalidate
-- electron-store 10.x: persistence — JSON file in `userData/`, type-safe, zero native deps (requires Electron 30+)
-- us-zips: zip code resolution — static local lookup, zero API calls, works offline
+- **Node.js `setInterval` in renderer via `useAutoRefresh` hook:** Auto-refresh timer — the renderer owns the fetch lifecycle through `refetch()`, keeping refresh co-located with fetch. `backgroundThrottling: false` should be set in BrowserWindow webPreferences to prevent Chromium from stalling the timer when the window is minimized.
+- **Open-Meteo hourly endpoint:** Hourly forecast — same `/v1/forecast` URL, same fetch call; add `&hourly=temperature_2m,weather_code,precipitation_probability` and `&forecast_hours=12`. No new API key, no new library.
+- **electron-conf schema extension:** Multi-location persistence — add `locations: LocationInfo[]` to the existing conf. Add `locations:get` and `locations:set` IPC handlers following the established `namespace:verb` pattern.
+- **Custom `useWeatherCanvas` hook:** Particle animations — ~80 lines of standard React + Canvas 2D; no third-party library. `@tsparticles/react` v3.0.0 has a 2-year-old publish date and is not listed as Electron-compatible; avoid it.
+- **`motion` v12.34.3:** Location-switch cross-fades — React 19 compatible; import from `motion/react`. Only new runtime install (`npm install motion`).
+- **electron-builder 26.0.12 (already installed):** Windows NSIS installer — needs `build` config block in `electron-builder.yml` and a `resources/icon.ico` file. The `build:win` script already exists.
+
+**Installation delta for v1.1:**
+```bash
+npm install motion          # only new runtime dependency
+npm install -D png-to-ico  # dev-only, one-time, for icon conversion
+```
 
 ### Expected Features
 
-The feature research identifies a clear MVP boundary and a set of v1.x additions that can follow once core is stable.
+**Must have (P1) — table stakes for v1.1 to feel complete:**
+- Location persistence across restarts — currently lost on every app close; the settings UI already shows the feature as if it works
+- Auto-refresh with configurable interval from settings + last-updated timestamp — the settings modal already exposes `refreshInterval`; the timer is not yet wired
+- Hourly forecast strip (12 hours) with temperature, condition icon, and precipitation probability — core stated requirement; data is already available in Open-Meteo
+- Windows NSIS installer — end-users need a distributable `.exe`; `build:win` exists but the `build` config block is incomplete
 
-**Must have (table stakes):**
-- Current conditions: temp, feels like, sky conditions, wind speed/direction, humidity — the primary glance value
-- Hourly forecast (12-24 hours): temp + condition icon per hour — core user need for day planning
-- Multiple saved locations by zip code with one-click switching — standard since ~2015
-- Auto-refresh with configurable interval (default 5 min) — explicitly required; must respect API rate limits
-- Dark neon sci-fi aesthetic with full design system — not optional; the aesthetic is the product identity; must be foundational
-- Error and loading states — without these the app feels broken on any API hiccup
-- Temperature unit toggle (F/C) — table stakes; missing feels incomplete
-- Geocoding (zip to city name + lat/lon) — required dependency for all API calls; build first
+**Should have (P1 per milestone scope) — differentiators:**
+- Animated weather particles (canvas-based) — no competitor Windows weather app offers this; WMO code drives particle type (rain/snow/fog/clear)
+- Smooth location-switch fade transition — low complexity; prevents the jarring snap between locations
 
-**Should have (competitive):**
-- UV Index, atmospheric pressure, sunrise/sunset — low-complexity data enrichment available in Open-Meteo response
-- Air Quality Index (AQI) — growing user demand; Open-Meteo has an air quality endpoint
-- Precipitation probability in hourly cards — most actionable forecast metric; already in API response
-- Animated weather particle effects — elevates static sci-fi theme to dynamic; medium complexity
-
-**Defer (v2+):**
-- Multi-day (7-14 day) forecast — accuracy degrades past 3-5 days; undermines user trust
-- Severe weather alerts — OWM free tier excludes alert data; needs paid tier or alternate source
-- System tray / widget / always-on-top mode — explicit out-of-scope per PROJECT.md
-- Animated radar map — requires separate tile data source; significant scope increase
-
-See `.planning/research/FEATURES.md` for full competitor analysis and prioritization matrix.
+**Defer to v2+:**
+- Multi-day (3-7 day) forecast — Open-Meteo has daily fields; PROJECT.md explicitly defers this
+- Severe weather alert banners — not available on Open-Meteo free tier
+- System tray / widget mode — explicitly out of scope
+- Refresh countdown indicator — P2 nice-to-have UX polish; add if time allows after P1 features are complete
+- Auto-location via OS geolocation — zip code entry is already fast; Windows location permissions add complexity not worth the tradeoff
 
 ### Architecture Approach
 
-The architecture follows Electron's strict three-process model: a Node.js main process that owns all network calls, filesystem access, and the refresh timer; a preload script that acts as a typed security boundary via `contextBridge`; and a React renderer that is purely reactive to IPC push events. The main process runs a `setInterval` scheduler that fetches weather on each tick and pushes normalized data to the renderer via `webContents.send`. The renderer subscribes via a `useWeather` hook and re-renders components declaratively. All API keys and network calls stay in the main process — never in the renderer, never Vite-bundled into the JS output.
+The v1.1 architecture is an extension-not-replacement of v1.0. The existing two-gate render pattern (`settingsLoaded` before weather fetch) gains a second gate (`locationsLoaded`) using the same pattern. All IPC remains strictly request/response — no push channels (`webContents.send`) are introduced. The auto-refresh timer lives in the renderer as `useAutoRefresh`, calling the existing `refetch()` rather than introducing bidirectional IPC. The particle canvas is a passive overlay: `position: absolute; inset: 0; pointer-events: none; z-index: 0` as the first child of WeatherPanel's `<main>`, receiving only `weatherCode` and `isDay` as props with no shared state.
 
-See `.planning/research/ARCHITECTURE.md` for project structure, data flow diagrams, code examples, and anti-patterns.
+**New components:**
+1. **`HourlyForecast` (new)** — pure display, accepts `HourlyPoint[]`; horizontally scrollable strip with time (12h AM/PM format), condition icon, temp, and precipitation probability; no state
+2. **`WeatherParticles` (new)** — canvas element with RAF loop; particle type derived from WMO `weatherCode` ranges; RAF ID stored in `useRef` for proper cleanup on unmount or weatherCode change
+3. **`LastUpdated` (new)** — renders "Updated X min ago" and optional countdown; receives `lastUpdatedAt` and `secondsUntilRefresh` as props
+4. **`useAutoRefresh` hook (new)** — manages `setInterval` calling `refetch()`; exposes `secondsUntilRefresh` and `lastUpdatedAt`; gates on `settingsLoaded && !!activeLocation`
 
-**Major components:**
-1. Settings Service (`main/services/settings.ts`) — `electron-store` read/write wrapper; foundation for all other services
-2. Weather Service (`main/services/weather.ts`) — HTTP calls to Open-Meteo, response normalization, stateless
-3. Refresh Scheduler (`main/services/scheduler.ts`) — owns `setInterval`, fetches weather, pushes via `webContents.send`
-4. IPC Handlers (`main/ipc/handlers.ts`) — typed `ipcMain.handle` registrations wiring services to the preload API
-5. Preload Bridge (`preload/index.ts`) — `contextBridge.exposeInMainWorld('weatherAPI', {...})`; minimal surface area
-6. Theme Layer (`renderer/styles/theme.css`) — CSS custom properties defining neon palette; pseudoelement glow pattern
-7. UI Components (`renderer/components/`) — CurrentConditions, HourlyForecast, LocationSwitcher, SettingsPanel
-8. Custom Hooks (`renderer/hooks/`) — `useWeather` (IPC subscription), `useSettings` (read/write settings)
-9. Shared Types (`shared/types.ts`) — single source of truth for `WeatherData`, `Location`, `Settings` interfaces
+**Modified files:**
+- `main/index.ts` — add `locations:get`, `locations:set` ipcMain handlers
+- `main/weather.ts` — add hourly params to URLSearchParams; return `hourly: HourlyPoint[]` in result
+- `main/settings.ts` — add `locations?: LocationInfo[]` to AppSettings interface
+- `preload/index.ts` + `index.d.ts` — add `getLocations`, `saveLocations` to contextBridge
+- `App.tsx` — load locations from IPC on mount; persist on add/delete; add delete handler; add `locationsLoaded` gate; add opacity transition state
+- `Sidebar.tsx` — add delete button (X) per location item
+- `WeatherPanel.tsx` — compose new components; add `relative` positioning context
+- `useWeather.ts` — return `hourly: HourlyPoint[]`
+- `lib/types.ts` — add `HourlyPoint` type; extend `WeatherData` and `AppSettings`
+- `electron-builder.yml` — fix `appId`, `productName`, `executableName`; add NSIS options
+
+**Dependency-respecting build order:**
+Data layer (types → weather.ts → settings.ts → IPC handlers → preload) → Location persistence (App.tsx + Sidebar) → Hourly forecast UI → Auto-refresh → Particles → Transitions → Installer (can run in parallel with particles).
 
 ### Critical Pitfalls
 
-Research identified six critical pitfalls; the top five with the highest implementation impact are:
+1. **Auto-refresh fires while previous fetch is in-flight** — add `isLoadingRef = useRef(false)` guard in `useWeather.refetch`; skip if already loading. Without this, background-throttling release after minimize batches multiple ticks, triggering concurrent API calls and potential stale-overwrites-fresh ordering.
 
-1. **API key exposed in renderer bundle** — Never use `VITE_OWM_KEY` or similar in renderer code; Vite inlines env vars into the JS bundle and anyone with the binary can extract them. Keep all keys in `process.env` in the main process only. With Open-Meteo as primary API (no key required), this risk is reduced but remains relevant if OWM is used as a fallback.
+2. **Locations lost on restart** — `App.tsx` currently holds `locations` in `useState`. Every restart resets to the welcome screen. Must be the first thing built in v1.1 — all subsequent features assume a stable, persisted location list.
 
-2. **Auto-refresh timer in React renderer without cleanup** — A bare `setInterval` inside `useEffect` without a `clearInterval` cleanup creates zombie timers on hot-reload and fails after window minimize (WebView2 throttles JS timers in minimized windows). Use TanStack Query's `refetchInterval` in the renderer, or drive refresh from a main-process `setInterval` with IPC push. Always test after 30 minutes minimized.
+3. **Hourly array starts at midnight, not current hour** — Open-Meteo returns hourly data indexed from 00:00 local time. Find `currentHour = new Date(current.time).getHours()`, then slice: `hourly.time.slice(currentHour, currentHour + 12)`. Request `forecast_days=2` when `currentHour > 12` to handle the across-midnight edge case after 10pm.
 
-3. **No cache layer on weather fetches** — Fetching live on every startup, location switch, and timer tick can exhaust free-tier quotas even for a single user (5 locations × 5 min interval = ~1,440 calls/day). Implement TTL-based caching from day one: serve cached data immediately on startup, refresh in background. Never block startup on a network call.
+4. **Canvas RAF loop not cancelled on unmount** — if `cancelAnimationFrame(rafRef.current)` is not returned from `useEffect`, each location switch accumulates an orphaned animation loop. Ten rapid switches = ten concurrent loops drawing on a detached canvas, CPU climbing monotonically. Store RAF ID in `useRef`; always `return () => cancelAnimationFrame(rafRef.current)`.
 
-4. **Neon glow CSS causing high CPU on integrated graphics** — Animating `box-shadow` or `text-shadow` directly triggers full browser repaints on every animation frame (cannot be GPU-composited). On Windows machines with integrated graphics, this results in 30-60% idle CPU. Use `filter: blur()` on a `will-change: opacity, transform` pseudoelement for glow; animate only `opacity`/`transform`; never animate `box-shadow` directly. Test on integrated graphics hardware, not a developer workstation.
-
-5. **Windows SmartScreen warning blocks installation** — Unsigned `.exe` installers trigger a "Windows protected your PC" dialog that stops non-technical users from installing. Plan for code signing from the start; provide explicit "More info → Run anyway" instructions for initial releases. For personal use, document the right-click → Properties → Unblock workaround.
-
-6. **Zip code input not validated before API call** — Raw user input passed directly to an API URL can cause unexpected 404s or query errors. Validate 5-digit numeric format before any lookup; handle invalid zip gracefully with a user-facing message, not an API error bleed-through.
+5. **`appId` must be locked before first installer distribution** — `appId` in `electron-builder.yml` derives the NSIS installer GUID and Windows registry uninstall key. Any change after distribution creates a ghost "Add or Remove Programs" entry that points to nothing. Lock to `com.weatherdeck.app` (matching the existing `setAppUserModelId` in `main/index.ts`) before building the first `.exe`.
 
 ## Implications for Roadmap
 
-Based on the dependency graph from FEATURES.md and the build order from ARCHITECTURE.md, a four-phase structure is recommended.
+Based on the dependency graph from FEATURES.md and the build order from ARCHITECTURE.md:
 
-### Phase 1: Project Foundation and Data Pipeline
+### Phase 1: Data Foundation and Location Persistence
 
-**Rationale:** The geocoding layer (zip → lat/lon) is the foundational dependency for every subsequent feature. Without it, no weather data can be fetched. The dark neon design system must also be established here — it cannot be added later without a full component rewrite. These two concerns, data pipeline and visual identity, are the load-bearing walls of the application.
+**Rationale:** Location persistence is the most critical gap in v1.0 — it is the stated blocker that makes multi-location useless across restarts. The `WeatherData` type change (adding `hourly: HourlyPoint[]`) cascades through every consumer component; resolving types and IPC contracts first prevents rework. These two concerns are data-layer work with no UI dependencies and can be verified by unit tests and IPC console logs before any component is touched.
 
-**Delivers:** A working Electron app that resolves a zip code, fetches current weather from Open-Meteo, and displays it in a dark neon UI. Settings persist across restarts.
+**Delivers:** Locations survive app restart; IPC contract for v1.1 fully defined; `HourlyPoint[]` flows from API to renderer; `AppSettings` types extended and matched across main and renderer.
 
-**Addresses (from FEATURES.md):**
-- Location management (add/switch/delete zip codes)
-- Geocoding (zip → city name + lat/lon via `us-zips`)
-- Basic current conditions display
-- Dark neon sci-fi design system (CSS custom properties, glow tokens, typography)
-- Error and loading states
+**Addresses:** Location persistence, location delete, multi-location switching, hourly data schema.
 
-**Avoids (from PITFALLS.md):**
-- API key in renderer bundle (no API key needed; main-process-only fetch pattern established)
-- Missing error states (build them alongside the data pipeline)
+**Avoids:** Pitfall 3 (in-memory locations); Pitfall 5 (hourly array slicing — unit-test `sliceHourly()` here with inputs at 00:00, 12:00, 23:00 before building the UI).
 
-**Stack used:** electron-vite scaffold, `shared/types.ts`, `electron-store`, `us-zips`, Open-Meteo API, Tailwind CSS 4 neon theme
+**Research flag:** Standard patterns throughout. Skip research-phase.
 
-### Phase 2: Auto-Refresh and Full Current Conditions
+---
 
-**Rationale:** Once the data pipeline exists, the refresh scheduler and complete current conditions display are the next natural increment. These are tightly coupled: auto-refresh requires a working fetch layer, and the configurable interval requires a working settings service (built in Phase 1). This phase completes the core loop: fetch → display → refresh automatically.
+### Phase 2: Hourly Forecast UI and Auto-Refresh
 
-**Delivers:** Auto-refreshing current conditions with the full data set (temp, feels like, conditions, wind, humidity), temperature unit toggle (F/C), and a configurable refresh interval stored persistently.
+**Rationale:** With `HourlyPoint[]` flowing from the API and types stable, `HourlyForecast` is a pure display component with no state complexity. Auto-refresh wiring requires the location persistence from Phase 1 to be stable first — the timer gate (`settingsLoaded && locationsLoaded && !!activeLocation`) requires both loading gates to be in place before the interval is connected, or the timer may fire before locations are loaded and cause a fetch against a null location.
 
-**Addresses (from FEATURES.md):**
-- Auto-refresh with configurable interval (default 5 min)
-- Complete current conditions: feels like, sky conditions, wind speed/direction, humidity
-- Temperature unit toggle (F/C)
+**Delivers:** Working 12-hour forecast strip (time, icon, temp, precip%); configurable auto-refresh with last-updated timestamp; no duplicate in-flight fetches.
 
-**Avoids (from PITFALLS.md):**
-- Auto-refresh timer leak (use main-process scheduler + IPC push; verify after 30-min minimize)
-- No cache layer (implement TTL check alongside scheduler; serve cached data on startup)
-- Stale data with no timestamp (display "last updated" timestamp from day one)
-- Zip code input validation gaps (validate before any API call)
+**Uses:** `useAutoRefresh` hook, `HourlyForecast` component, `LastUpdated` component.
 
-**Architecture built:** `main/services/scheduler.ts`, `useWeather` hook, full IPC push flow
+**Avoids:** Pitfall 1 (duplicate in-flight fetches — add `isLoadingRef` guard before wiring the interval); Pitfall 2 (background throttling — set `backgroundThrottling: false` in BrowserWindow webPreferences, or accept and document the tradeoff); Pitfall 5 (hourly midnight offset — verified by unit tests in Phase 1).
 
-### Phase 3: Hourly Forecast and Multi-Location Management
+**Research flag:** Standard patterns. Skip research-phase.
 
-**Rationale:** With the core refresh loop proven stable, the hourly forecast and multi-location management are the next increment. The hourly forecast depends on the same data pipeline (different Open-Meteo endpoint). Multi-location adds complexity to the scheduler (which location is active?) and to the UI (location switcher tabs). These two concerns belong together because the location switcher directly drives which location is displayed in both the current conditions and hourly forecast.
+---
 
-**Delivers:** Scrollable hourly forecast for the next 12-24 hours with temp + condition icons; location switcher UI with up to 5 saved zip codes; immediate fetch on location switch.
+### Phase 3: Weather Particle Animations
 
-**Addresses (from FEATURES.md):**
-- Hourly forecast (12-24 hours): temp + condition icon
-- Multiple saved locations with one-click switching
+**Rationale:** Particles are architecturally independent — they read only `weather.weatherCode` and `isDay` from already-stable data. This independence makes them safe to build in isolation without blocking other features. Particle performance on integrated graphics (the actual target platform) must be benchmarked before declaring this phase done; allocating a separate phase allows CPU tuning without schedule pressure.
 
-**Avoids (from PITFALLS.md):**
-- No debounce on rapid location switching (add 300ms debounce; cancel in-flight fetch on new selection)
-- Auto-refresh resets scroll position (update data in-place; do not unmount/remount forecast list)
-- No active location indicator (highlight active tab; show city name from API, not raw zip)
+**Delivers:** Canvas-based particle overlay for rain (diagonal streaks), snow (drifting flakes), fog (slow wisps), and clear conditions; 60fps target with particle counts benchmarked on integrated graphics; `prefers-reduced-motion` bypass.
 
-**Architecture built:** `HourlyForecast.tsx`, `LocationSwitcher.tsx`, Open-Meteo hourly forecast endpoint integration
+**Uses:** Custom `useWeatherCanvas` hook; Canvas 2D API; `requestAnimationFrame` with `useRef` cleanup.
 
-### Phase 4: Packaging and Distribution
+**Avoids:** Pitfall 6 (RAF cleanup — store ID in `useRef`, always return `cancelAnimationFrame` from effect); Pitfall 7 (high CPU on integrated graphics — cap at 60-80 particles max, pre-create gradient objects outside the RAF loop, add `prefers-reduced-motion` check).
 
-**Rationale:** Packaging is last because it depends on all features being complete. Windows-specific concerns (SmartScreen, WebView2 runtime, NSIS installer, code signing) only surface when running a production build on a clean machine. These must be validated before any external release.
+**Research flag:** Performance on integrated graphics is the one area requiring hands-on validation rather than research. Target: `<5% idle CPU` on Intel UHD 620 or equivalent (test by disabling Electron hardware acceleration in dev). No research-phase needed — patterns are standard.
 
-**Delivers:** A distributable Windows `.exe` installer built with electron-builder; verified on a clean Windows 11 machine; documented install instructions for SmartScreen bypass; verified that no API keys are baked into the bundle.
+---
 
-**Avoids (from PITFALLS.md):**
-- SmartScreen blocking distribution (provide "More info → Run anyway" documentation; consider OV cert for public release)
-- Missing WebView2 on end-user machines (electron-builder can bundle or require WebView2; verify bundling strategy)
+### Phase 4: Location-Switch Transitions and UX Polish
 
-**Stack used:** electron-builder, NSIS target, `nsis` configuration
+**Rationale:** Transitions depend on a stable `activeIndex` (Phase 1) and stable weather data (Phase 2). This is the lowest-risk phase — a CSS opacity transition is sufficient and can be upgraded to `motion`/`AnimatePresence` only if the fade timing proves inadequate. UX hardening (delete-button guard when one location remains, scroll-position preservation on auto-refresh, stale data flash prevention) belongs here because it requires all prior features to be working before edge cases are visible.
+
+**Delivers:** Fade cross-fade on location switch; delete button disabled/hidden when one location remains; hourly forecast scroll position preserved across auto-refresh cycles; stale data from previous location cleared before new fetch resolves.
+
+**Uses:** CSS `transition: opacity 150ms ease` on WeatherPanel wrapper (or `motion`/`AnimatePresence` if CSS approach proves insufficient).
+
+**Avoids:** Pitfall 4 (stale data flash — add `setWeather(null)` at top of location-change `useEffect` in `useWeather.ts` so the skeleton shows before new data arrives, not the previous city's temperature under the new city's name).
+
+**Research flag:** Standard patterns. Skip research-phase.
+
+---
+
+### Phase 5: Windows Installer
+
+**Rationale:** The installer is fully independent of all runtime features and can be parallelized with Phase 3 or 4 in execution. Treating it as a distinct phase ensures SmartScreen validation on a clean Windows 11 VM gets dedicated attention and is not skipped under schedule pressure.
+
+**Delivers:** `WeatherDeck-Setup-1.1.0.exe` NSIS installer with desktop + Start Menu shortcuts; SmartScreen bypass documented in README; single consistent "Add or Remove Programs" entry.
+
+**Uses:** electron-builder 26.0.12 (already installed); `build:win` script (already exists); `resources/icon.ico` (to create from existing PNG assets via `png-to-ico`).
+
+**Avoids:** Pitfall 8 (lock `appId` to `com.weatherdeck.app` matching `setAppUserModelId` in `main/index.ts` before first build — do not change later); Pitfall 9 (unsigned SmartScreen — document "More info → Run anyway" for personal/internal use; evaluate Azure Trusted Signing at ~$10/month for public distribution).
+
+**Research flag:** Standard NSIS target patterns. The one judgment call — unsigned vs. signed — is fully documented in PITFALLS.md. No additional research needed.
+
+---
 
 ### Phase Ordering Rationale
 
-- Phase 1 before everything: geocoding and design system are foundational dependencies — nothing else can be built without them
-- Phase 2 before Phase 3: auto-refresh scheduler must exist before multi-location can switch which location is refreshed
-- Phase 3 completes the MVP feature set before packaging is attempted — packaging a partial app wastes distribution testing effort
-- Phase 4 last: distribution concerns (SmartScreen, signing, installer format) are only testable with a complete build on a clean machine
+- **Data before UI:** `WeatherData` and `AppSettings` type changes propagate through every consumer. Resolving them first prevents rework in every subsequent phase.
+- **Location persistence before auto-refresh:** The timer gate requires `locationsLoaded === true`. Building the gate before the timer prevents firing a fetch against a null location.
+- **Particles after data pipeline:** Canvas component reads `weatherCode` from stable `WeatherData`; building it last among runtime features means no mocks or stubs needed.
+- **Transitions after all data features:** Smooth transitions require stable `activeIndex` and `weather` state; all edge cases (stale data flash, one-location delete guard) are only visible once the full feature set is working.
+- **Installer parallel-safe:** No runtime dependencies; can be built and tested any time after the app builds cleanly. Phases 3 and 5 have no inter-dependencies.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
+All phases use standard, well-documented patterns. No phases require `/gsd:research-phase` during planning. The existing research provides HIGH confidence coverage across all areas.
 
-- **Phase 3:** Open-Meteo hourly forecast endpoint response shape for 3-hourly vs. true hourly data; filtering/interpolation approach for 12-24 hour display. The ARCHITECTURE.md notes that "true hourly requires paid plan" for OWM — verify whether Open-Meteo provides true hourly (it does, via the `hourly` parameter) and confirm the exact field names and array structure before implementation.
-- **Phase 4:** Code signing certificate options (OV vs EV), electron-builder NSIS bundling of WebView2 runtime, and Windows Defender/SmartScreen reputation timeline for new apps.
-
-Phases with standard patterns (skip additional research):
-
-- **Phase 1:** electron-vite scaffold, `electron-store`, Tailwind CSS 4 dark theme — all well-documented with official guides
-- **Phase 2:** Main-process scheduler + IPC push is a canonical Electron pattern with code examples in ARCHITECTURE.md; TanStack Query `refetchInterval` is documented with official examples
+The one area to validate during implementation (not research): particle performance on integrated graphics in Phase 3. This is a benchmark task, not a research task — run with hardware acceleration disabled in Electron dev tools and check CPU% with particles active.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Core stack (Electron, React, TypeScript, electron-vite) verified against official releases and docs. Open-Meteo verified against official API docs — no key, 10k/day confirmed. electron-store Electron 30+ requirement confirmed from GitHub. |
-| Features | MEDIUM | Competitor analysis based on third-party review sites and forum posts (MEDIUM confidence). OWM free-tier capabilities verified from official docs. Feature prioritization based on published UX research and academic usage studies. |
-| Architecture | MEDIUM-HIGH | Electron process model and IPC patterns from official Electron docs (HIGH). Project-specific structure (component breakdown, service layout) from community sources and blog posts (MEDIUM). All anti-patterns verified against documented Electron security guidance. |
-| Pitfalls | MEDIUM | OWM billing/credit-card pitfall verified from official OWM FAQ. Neon CSS paint performance from Smashing Magazine (older but CSS fundamentals unchanged). WebView2 timer throttling verified from Tauri GitHub issues — applicable to Electron's WebView2 usage on Windows as well. SmartScreen behavior from Advanced Installer guide (MEDIUM confidence). |
+| Stack | HIGH | All additions verified against official npm, official Electron docs, and the existing package.json. Only one new runtime dependency (`motion`). electron-builder version and NSIS options confirmed via official docs. |
+| Features | HIGH | Open-Meteo hourly API verified via official docs (field names, `forecast_hours` param, rate limits). Feature scope directly from PROJECT.md milestone definition. Competitor comparison documented in FEATURES.md. |
+| Architecture | HIGH | Existing codebase read directly for baseline. New patterns (IPC extension, electron-conf schema, canvas animation, CSS transitions) verified against Electron official docs, electron-conf GitHub, and Open-Meteo docs. |
+| Pitfalls | HIGH / MEDIUM | Electron timer throttling confirmed via GitHub issues #4465, #31016, #42378. SmartScreen behavior confirmed via official Electron code-signing docs. Canvas GPU performance on integrated graphics is MEDIUM — risk is documented and mitigated but not benchmarked on target hardware. |
 
-**Overall confidence:** MEDIUM-HIGH
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Open-Meteo hourly data structure:** ARCHITECTURE.md was written with OWM in mind (3-hour intervals with cnt=24). Open-Meteo's hourly forecast returns true hourly data via the `hourly` parameter — but the exact response field names and how to filter to 12-24 hours should be confirmed before implementation. This is a minor gap, not a blocker.
-- **WeatherAPI.com free tier status:** Research notes the free tier may have been restricted. This is moot since Open-Meteo is the selected API — no validation needed.
-- **Tailwind CSS 4 and electron-vite integration:** Tailwind v4 eliminates `tailwind.config.js` and uses a CSS-first config. The integration path with electron-vite's Vite setup (`@tailwindcss/vite` plugin) is documented but less battle-tested than v3. Flag this during Phase 1 setup — if integration friction is high, v3 is a valid fallback.
-- **electron-store ESM requirement:** electron-store 10.x is ESM-only. electron-vite 5.0 supports ESM main process, but this must be verified during Phase 1 setup by confirming `"type": "module"` in package.json or equivalent ESM configuration is compatible with the full scaffold.
+- **Particle performance on integrated graphics:** Research documents the risk and mitigations (particle count cap, pre-created gradients, `prefers-reduced-motion`), but actual performance must be benchmarked during Phase 3 on hardware with Intel UHD 620 or equivalent. Target: `<5% idle CPU`. If exceeded, reduce particle count before proceeding to polish.
+- **`backgroundThrottling` tradeoff:** Two valid approaches are documented — set `backgroundThrottling: false` (one line, keeps timer consistent) vs. accept throttling (users who minimize don't need live updates for a weather display app). Decide at the start of Phase 2 before writing any interval code. ARCHITECTURE.md recommends accepting the tradeoff; PITFALLS.md recommends `backgroundThrottling: false`. Either is defensible.
+- **`motion` vs. CSS transitions:** Both paths are fully documented. Decide at the start of Phase 4. CSS-first is the recommendation; `motion` only if the fade feels wrong in practice.
+- **SmartScreen signing strategy:** Unsigned (document bypass) is correct for personal/internal use. If public distribution is intended, Azure Trusted Signing (~$10/month, no hardware dongle) can be wired into `electron-builder` signing config. Decide before Phase 5 begins so the build pipeline is configured correctly from the start.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Electron official docs (process model, IPC, preload scripts): https://www.electronjs.org/docs/latest/
-- Open-Meteo official docs: https://open-meteo.com/en/docs
-- Open-Meteo Geocoding API: https://open-meteo.com/en/docs/geocoding-api
-- electron-vite Getting Started + v5.0 blog: https://electron-vite.org/guide/
-- TanStack Query auto-refetching: https://tanstack.com/query/v5/docs/framework/react/examples/auto-refetching
-- electron-store GitHub (Electron 30+ requirement, ESM-only): https://github.com/sindresorhus/electron-store
-- OpenWeatherMap One Call API 3.0 (credit card, billing): https://openweathermap.org/api/one-call-3
-- Tailwind CSS v4 dark mode: https://tailwindcss.com/docs/dark-mode
+- [Open-Meteo official docs](https://open-meteo.com/en/docs) — hourly endpoint, variable names (`temperature_2m`, `precipitation_probability`, `weather_code`, `wind_speed_10m`, `apparent_temperature`), `forecast_hours` param, `forecast_days` param, `timezone=auto` behavior, rate limits (10,000 calls/day)
+- [Electron IPC Tutorial](https://www.electronjs.org/docs/latest/tutorial/ipc) — `ipcMain.handle` / `ipcRenderer.invoke` request/response pattern; `contextBridge` usage
+- [Electron BrowserWindow docs](https://www.electronjs.org/docs/latest/api/browser-window) — `backgroundThrottling` option
+- [electron/electron GitHub issue #4465](https://github.com/electron/electron/issues/4465) — confirmed renderer `setInterval` throttling when window not foreground
+- [electron-builder NSIS docs](https://www.electron.build/nsis.html) — `oneClick`, `allowToChangeInstallationDirectory`, `appId` GUID warning
+- [electron-builder Windows target](https://www.electron.build/win.html) — NSIS target, executable naming
+- [electron-conf GitHub](https://github.com/alex8088/electron-conf) — JSON Schema storage, array support, single-instance-per-file constraint
+- [motion npm](https://www.npmjs.com/package/motion) — v12.34.3, React 19 compatibility, `motion/react` import path
+- [Electron code signing tutorial](https://www.electronjs.org/docs/latest/tutorial/code-signing) — SmartScreen behavior for unsigned apps
+- [Electron performance docs](https://www.electronjs.org/docs/latest/tutorial/performance) — `requestAnimationFrame` canvas pattern
 
 ### Secondary (MEDIUM confidence)
-- Advanced Electron.js Architecture (LogRocket): https://blog.logrocket.com/advanced-electron-js-architecture/
-- electron-vite project structure conventions: https://electron-vite.org/guide/dev
-- Smashing Magazine — GPU Animation performance: https://www.smashingmagazine.com/2016/12/gpu-animation-doing-it-right/
-- Tauri GitHub Issues — WebView2 timer throttling: https://github.com/tauri-apps/tauri/issues/5147
-- Tauri GitHub Issues — High CPU on Windows: https://github.com/tauri-apps/tauri/issues/10373
-- Advanced Installer SmartScreen guide: https://www.advancedinstaller.com/prevent-smartscreen-from-appearing.html
-- MakeUseOf Best Weather Apps for Windows (competitor analysis): https://www.makeuseof.com/best-weather-apps-windows/
-- Weather app UX best practices: https://design4users.com/weather-in-ui-design-come-rain-or-shine/
+- [electron/electron GitHub issue #31016](https://github.com/electron/electron/issues/31016) — `backgroundThrottling: false` behavior on Windows hide/show
+- [electron/electron GitHub issue #42378](https://github.com/electron/electron/issues/42378) — blank window after hidden with throttling
+- [electron-builder code signing](https://www.electron.build/code-signing-win.html) — Azure Trusted Signing availability, EV cert costs
+- [electron-builder GitHub issue #628](https://github.com/electron-userland/electron-builder/issues/628) — SmartScreen warning behavior without signing
+- [react-snowfall GitHub](https://github.com/cahilfoley/react-snowfall) — canvas-based particle reference; too narrow for all weather types
+- [tsparticles/react GitHub](https://github.com/tsparticles/react) — v3.0.0, 2-year-old publish date; avoid for Electron
+- [MDN CSS Transitions](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Transitions/Using) — opacity + transform as GPU-composited properties
+- [motion upgrade guide](https://motion.dev/docs/react-upgrade-guide) — `motion/react` import path confirmed
 
-### Tertiary (LOW confidence)
-- Clustox Weather App Development Guide 2026 (feature tiering concepts): https://www.clustox.com/blog/weather-app-development-guide/
-- WeatherAPI.com free tier status (unverified): https://github.com/monicahq/monica/issues/6288
+### Tertiary (pattern reference)
+- [Pete Corey — Animating a Canvas with React Hooks](https://www.petecorey.com/blog/2019/08/19/animating-a-canvas-with-react-hooks/) — RAF ref cleanup pattern
+- [Max Rozen — Race conditions with useEffect fetch](https://maxrozen.com/race-conditions-fetching-data-react-with-useeffect) — in-flight guard pattern
+- [Konva.js memory leak avoidance](https://konvajs.org/docs/performance/Avoid_Memory_Leaks.html) — canvas RAF cleanup
 
 ---
 *Research completed: 2026-03-01*

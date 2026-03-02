@@ -1,8 +1,20 @@
 # Feature Research
 
-**Domain:** Windows desktop weather application
+**Domain:** Windows desktop weather application — v1.1 milestone features
 **Researched:** 2026-03-01
-**Confidence:** MEDIUM
+**Confidence:** HIGH (Open-Meteo API verified via official docs; Electron behavior from GitHub issues; UI patterns from confirmed community sources)
+
+---
+
+## Scope Note
+
+This document focuses exclusively on the NEW features for v1.1. The v1.0 foundation is already shipped and working:
+- Current conditions display (temp, feels-like, humidity, wind, UV, pressure, sunrise/sunset)
+- Neon sci-fi UI theme with Tailwind v4 and glow classes
+- Settings modal (temp/wind units, refresh interval)
+- Zip code input with offline geocoding (zipcodes-us)
+- Loading/error states with retry and skeleton loaders
+- IPC architecture: contextIsolation:true, explicit namespace:verb handlers, electron-conf persistence
 
 ---
 
@@ -10,124 +22,112 @@
 
 ### Table Stakes (Users Expect These)
 
-Features users assume exist. Missing these = product feels incomplete.
+Features that complete the current product gap. Missing any of these = v1.1 feels incomplete.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Current temperature display | Core purpose of any weather app | LOW | Show in large, glanceable typography |
-| "Feels like" temperature | Standard in all major weather apps since 2020 | LOW | Derived from heat index / wind chill formula |
-| Current sky conditions | Users need to know if it's raining right now | LOW | Clear, Partly Cloudy, Overcast, Rain, Snow, etc. |
-| Current wind speed and direction | Expected by all weather users | LOW | Speed in mph + cardinal direction |
-| Current humidity | Universal across all competing apps | LOW | Percentage display |
-| Hourly forecast (next 12-24 hrs) | Core user need for day planning | MEDIUM | Temperature + condition icon per hour |
-| Multiple saved locations | Standard since ~2015 across all major apps | MEDIUM | Saved by zip code; switch with one click |
-| Auto-refresh on configurable interval | Users expect data to stay current automatically | MEDIUM | Default 5 min; must respect API rate limits |
-| Weather condition icons | Universally expected; raw text feels broken | LOW | Icon per condition: sun, cloud, rain, snow, storm |
-| Temperature unit toggle (F/C) | Standard in any weather app targeting mixed audience | LOW | Persist preference to local storage |
-| Location name display | Users must confirm which location is showing | LOW | City name + state derived from zip code via geocoding |
-| Loading state / error state | App must handle API failures gracefully | LOW | Spinner on load; clear error if API unreachable |
+| Auto-refresh on configurable interval | Settings modal already has refreshInterval; users see the option but it does nothing yet | MEDIUM | setInterval in renderer; reads `settings.refreshInterval`; fires `refetch()`; interval resets on settings change |
+| Last-updated timestamp | Users must know if displayed data is stale after a refresh failure | LOW | Format as "Updated 3 min ago" using relative time; update on each successful fetch |
+| Hourly forecast — next 12 hours | Core user need for daily planning; Open-Meteo already returns hourly fields | MEDIUM | Horizontally scrollable card strip; temp + condition icon + precipitation probability per hour |
+| Precipitation probability per hour | Most actionable hourly metric; users plan around rain probability | LOW | Already available as `precipitation_probability` in Open-Meteo hourly response; just fetch and render |
+| Multiple saved locations — persist across restart | Locations live in React state today; lost on restart | MEDIUM | Save array to electron-conf via IPC; load on startup; existing add/select/display wiring already done |
+| Location delete | Users need to remove stale locations | LOW | Remove from electron-conf array; auto-select adjacent location |
+| Windows .exe installer | End-users need a distributable they can run | MEDIUM | electron-builder NSIS target; one-click install; desktop shortcut; SmartScreen documentation required |
 
 ### Differentiators (Competitive Advantage)
 
-Features that set the product apart. Not required, but valued.
+Features that make WeatherDeck visually distinctive against MSN Weather and Lively Weather.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Dark neon sci-fi aesthetic | Visually striking; stands out against generic Windows apps | MEDIUM | The PROJECT.md explicitly calls this out as core identity; not optional for this product |
-| Animated weather backgrounds / effects | Lively Weather shows users value dynamic visuals strongly | HIGH | Rain/snow particle effects, lightning; aligns with sci-fi theme; defer to v1.x if needed |
-| Glowing neon data cards | Differentiates from flat UI competitors; reinforces sci-fi theme | MEDIUM | Cyan-blue glow on card borders and key metrics; CSS/GPU-accelerated |
-| UV Index display | Present in competitors (MSN Weather, SimpleWeather) but users value it | LOW | Available in OpenWeatherMap free tier |
-| Atmospheric pressure display | Power users and weather enthusiasts expect this | LOW | Available in API; completes the "full picture" feel |
-| Air quality index (AQI) | Growing user demand per 2024-2025 market research | MEDIUM | OpenWeatherMap has free Air Pollution API endpoint |
-| Sunrise / sunset times | Present in top competitors; valued for planning | LOW | Calculated from lat/lon; available in API response |
-| Configurable refresh interval UI | Most apps have fixed intervals; configurable is a differentiator | LOW | Simple dropdown or slider in settings panel |
-| Precipitation probability | Users interpret this as the most actionable forecast metric | LOW | Available in hourly forecast response from OWM |
-| Wind gusts (separate from sustained) | Relevant for outdoor planning; not always shown | LOW | Available in OWM API; easy to add if data exists |
+| Animated weather particles | Dynamic visuals tied to current conditions; no Windows desktop weather app does this | HIGH | Canvas-based; requestAnimationFrame loop; rain (diagonal streaks), snow (drifting flakes), fog (scrolling opacity layers), clear (subtle star drift or ambient glow pulse); condition determined by WMO weatherCode from existing `weatherCodeMap.ts` |
+| Smooth location-switch transition | Instantaneous switches feel abrupt; a fade-out/fade-in gives the UI weight and polish | LOW | CSS opacity transition (200-300ms fade-out, fetch, fade-in); transform + opacity only (GPU-composited); no layout-triggering properties |
+| Refresh countdown indicator | Transparent about when next refresh fires; builds user trust in data freshness | LOW | Small text or thin progress bar showing "Refresh in 2m 30s" or progress filling left-to-right; updates every second |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-Features that seem good but create problems.
-
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Multi-day (7-14 day) forecast | Users ask for it; competitors have it | Forecast accuracy degrades significantly past 3-5 days; degrades trust; OWM free tier gives 5 day/3hr only, not true daily | Show "conditions are less certain beyond 24hr" messaging; defer to v2 when data sourcing is confirmed |
-| Severe weather alerts / push notifications | Users want to be warned of dangerous weather | Complex to implement reliably; OWM alert data not available on free tier; notification spam destroys UX | Show a static alert banner if API returns alert data; defer active push notifications to v2 |
-| Live radar map | Impressive visually; users request it | Requires separate radar data source (not OWM free); tile rendering is complex; likely needs paid tier | Not in scope; if desired later, investigate Open-Meteo radar layer |
-| System tray / widget / always-on-top mode | Users want weather visible at all times | Increases implementation surface dramatically (tray icon APIs, window management); scope creep for v1 | Full window auto-refresh achieves the same goal; tray mode is explicit v2 item |
-| User accounts / cloud sync | Users want settings on multiple devices | Requires backend infrastructure, auth, privacy compliance; no user value at single-user scale | Local JSON config file; settings sync deferred indefinitely |
-| Geolocation / GPS auto-detect | Convenient; skips manual zip entry | Requires OS location permissions; adds complexity; privacy concern on desktop; zip code is more reliable on Windows | Manual zip code entry is sufficient and expected; auto-detect can be v1.x enhancement |
-| Historical weather data | Interesting for weather enthusiasts | OWM historical data costs money past 1 year; no clear user need in core loop | Not in scope |
-| Social sharing of weather screenshots | Some users share weather screenshots | Low-value feature; OS screenshot tools handle this; adds no retention | Use OS-native screenshot; not worth building |
-| AI natural language summaries | Modern; some apps promote this | Requires LLM API dependency and cost; output is often generic; trust issues with AI weather claims | Well-formatted data cards with clear numbers are more trustworthy and faster |
+| WebGL / Three.js for weather particles | Maximum visual fidelity; GPU shaders for rain | Overkill for 50-150 particles; adds 500KB+ to bundle; increases startup time; Canvas 2D achieves identical visual at this scale | Canvas 2D with requestAnimationFrame; react-snowfall pattern as reference |
+| Real-time particle count (1000+) | More particles = more realistic | Performance degrades on low-end Windows hardware; battery impact on laptops; MDN recommends under 200 for Canvas 2D | Cap at 80-120 particles; pause when window is minimized (`document.visibilityState`) |
+| Particle system that blocks weather content | Visually impressive | Particles obscuring temperature or conditions defeats the purpose of a weather app | Render particles on a full-screen Canvas behind the UI; UI sits on top via CSS z-index |
+| Code-signed EV certificate for SmartScreen bypass | Completely eliminates SmartScreen warning | EV certificates cost $300-600/year and require hardware token; overkill for a personal/portfolio app | Document SmartScreen bypass steps ("More info" → "Run anyway"); distributable stays functional |
+| Auto-location via OS geolocation | Convenient for new users | Requires Windows location permissions dialog; adds electron API complexity; zip code entry is already fast | Existing zip code entry; no change needed |
+| Animated transitions via React Router or framer-motion | Polished cross-component animations | Introduces routing layer where none is needed; framer-motion adds 50KB; CSS transitions on opacity achieve same result | CSS `transition: opacity 200ms ease` on the WeatherPanel wrapper; zero dependencies |
+| Per-location weather particle themes | Each location has different particle color/style | State management explosion; particle engine needs location awareness | Single particle engine responds to current weatherCode; location-specific customization is a distraction |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Location Management (zip code storage)]
-    └──requires──> [Geocoding API] (zip → city name + lat/lon)
-                       └──enables──> [Current Weather Fetch] (lat/lon to OWM)
-                                         └──enables──> [Hourly Forecast Display]
-                                         └──enables──> [UV Index display]
-                                         └──enables──> [AQI display]
-                                         └──enables──> [Sunrise/Sunset display]
+[Auto-Refresh Timer]
+    └──reads──> [settings.refreshInterval] (already persisted in electron-conf)
+    └──calls──> [refetch()] from useWeather.ts (already exists)
+    └──updates──> [lastUpdated timestamp state]
+    └──resets when──> [active location changes]
 
-[Auto-Refresh Engine]
-    └──requires──> [Current Weather Fetch]
-    └──requires──> [Configurable Interval Setting]
+[Hourly Forecast Display]
+    └──requires──> [Open-Meteo hourly API call] (new; extends existing weather.ts fetchWeather)
+                       └──fields: temperature_2m, weather_code, precipitation_probability (hourly)
+                       └──same lat/lon, timezone:auto, temperature_unit, wind_speed_unit params
+    └──requires──> [HourlyForecastStrip component] (new)
+    └──uses──> [weatherCodeMap.ts] (existing — maps WMO code to icon + label)
+    └──enhances──> [WeatherPanel] (existing — hourly strip slots in below ConditionsGrid)
 
-[Temperature Unit Toggle]
-    └──enhances──> [Current Weather Display]
-    └──enhances──> [Hourly Forecast Display]
+[Location Persistence]
+    └──requires──> [IPC handler: locations:getAll] (new electron-conf array key)
+    └──requires──> [IPC handler: locations:save] (new — replaces React useState)
+    └──requires──> [IPC handler: locations:delete] (new)
+    └──replaces──> [locations useState in App.tsx] (currently ephemeral)
+    └──feeds──> [Sidebar] (existing — already renders location list)
 
-[Dark Neon Theme / UI]
-    └──must be present at──> [All display components] (not addable later without full rework)
+[Location-Switch Transition]
+    └──triggers on──> [activeIndex change in App.tsx]
+    └──wraps──> [WeatherPanel] in opacity transition
+    └──resets──> [Auto-Refresh Timer countdown]
+
+[Weather Particles]
+    └──reads──> [weather.weatherCode] (already in WeatherData)
+    └──uses──> [weatherCodeMap.ts condition categories] (existing)
+    └──renders──> [Canvas element, position:fixed, z-index behind UI]
+    └──pauses when──> [document.visibilityState === 'hidden']
+    └──independent of──> [location switching] (engine rerenders when weatherCode changes)
+
+[Windows Installer]
+    └──requires──> [electron-builder config] (package.json build section)
+    └──independent of──> [all runtime features above]
+    └──requires──> [app icon .ico file] in resources/
 ```
 
 ### Dependency Notes
 
-- **Location Management requires Geocoding:** Zip codes must resolve to coordinates before any OWM call can be made. OpenWeatherMap's Geocoding API is free and handles this. Build this first.
-- **Geocoding enables everything:** All weather data fetches use lat/lon, not zip code directly. The geocoding layer is the foundation.
-- **Auto-Refresh requires configurable interval:** The refresh timer reads from the settings store; settings must be implemented before auto-refresh can be wired up.
-- **Dark Neon Theme must be foundational:** Retrofitting a sci-fi aesthetic onto a generic-looking layout is a rewrite. Design system (colors, glow effects, typography) must be established in Phase 1, not Phase 3.
-- **Temperature unit toggle enhances all displays:** Must propagate through a shared state/store so all components respond simultaneously.
+- **Auto-refresh is almost free:** `refetch()` already exists in `useWeather.ts`. The timer needs a `useEffect` with `setInterval` reading `settings.refreshInterval`. The only new state is `lastUpdated: Date | null`.
+- **Hourly forecast requires API extension:** `weather.ts` currently requests `current` and `daily` only. The hourly call adds `hourly=temperature_2m,weather_code,precipitation_probability` with `forecast_hours=12`. Can be added to the same API call or as a parallel fetch — same call preferred (one network request).
+- **Location persistence is a state migration:** Locations currently live in `useState`. Moving to electron-conf requires adding 3 IPC handlers and updating App.tsx initialization to load from conf on mount. The existing Sidebar and add/select wiring does not change.
+- **Particles are fully independent:** The particle Canvas can be added as a fixed-position overlay component that reads `weather.weatherCode` directly. No existing components need modification beyond App.tsx mounting the overlay.
+- **Installer is buildtime-only:** No runtime code changes; requires `package.json` build configuration and an `.ico` icon file.
 
 ---
 
-## MVP Definition
+## MVP Definition for v1.1
 
-### Launch With (v1)
+### Ship in v1.1 (This Milestone)
 
-Minimum viable product — what's needed to validate the concept and fulfill the stated requirements.
+- [x] Location persistence — save/load/delete locations via electron-conf IPC
+- [x] Auto-refresh with configurable interval from settings + last-updated timestamp
+- [x] Hourly forecast strip (12 hours) — temperature, condition icon, precipitation probability
+- [x] Weather particle overlay — rain, snow, fog, clear (calm); canvas-based
+- [x] Smooth location-switch fade transition
+- [x] Windows NSIS installer via electron-builder + SmartScreen documentation
 
-- [ ] Location management — add, switch, delete zip codes — why essential: core requirement; app is useless without it
-- [ ] Geocoding — zip to city name + coordinates — why essential: required dependency for all API calls
-- [ ] Current conditions display — temp, feels like, sky conditions, wind, humidity — why essential: primary glance value
-- [ ] Hourly forecast — next 12-24 hours with temp + condition icon — why essential: stated core requirement
-- [ ] Auto-refresh with configurable interval — default 5 min — why essential: stated core requirement
-- [ ] Dark neon sci-fi aesthetic — full design system applied — why essential: the aesthetic IS the product identity; cannot be a v2 addition
-- [ ] Error and loading states — why essential: without these the app feels broken on any API hiccup
-- [ ] Temperature unit toggle (F/C) — why essential: table stakes; missing = incomplete
+### Defer to v2
 
-### Add After Validation (v1.x)
-
-Features to add once core is proven stable.
-
-- [ ] UV Index + atmospheric pressure + sunrise/sunset — trigger: core metrics working, want to add richness to data display
-- [ ] Air Quality Index (AQI) — trigger: OWM Air Pollution API is free; add when core data pipeline is stable
-- [ ] Animated weather particle effects — trigger: static sci-fi theme is shipped; want to elevate to dynamic visuals
-- [ ] Precipitation probability in hourly cards — trigger: hourly display is stable; field is already in API response
-
-### Future Consideration (v2+)
-
-Features to defer until product-market fit is established.
-
-- [ ] Multi-day (7-14 day) forecast — defer: OWM free tier doesn't give clean daily aggregates; needs data source research
-- [ ] Severe weather alert banners — defer: OWM free tier doesn't include alert data; needs paid tier or alternate API
-- [ ] System tray / widget / minimal mode — defer: explicit out-of-scope in PROJECT.md
-- [ ] Animated radar map — defer: separate data source required; significant complexity
-- [ ] GPS / auto-location detection — defer: zip code entry is sufficient for v1
+- [ ] Multi-day (3-7 day) forecast — Open-Meteo has daily fields but PROJECT.md explicitly defers
+- [ ] Severe weather alert banners — not in Open-Meteo free tier
+- [ ] System tray / widget mode — explicitly out of scope
+- [ ] Wind gusts in hourly view — available in API but adds visual complexity; defer
+- [ ] Animated radar overlay — requires separate tile source
 
 ---
 
@@ -135,66 +135,200 @@ Features to defer until product-market fit is established.
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Current conditions display | HIGH | LOW | P1 |
-| Hourly forecast (12-24 hr) | HIGH | MEDIUM | P1 |
-| Multiple saved locations | HIGH | MEDIUM | P1 |
-| Auto-refresh configurable | HIGH | MEDIUM | P1 |
-| Dark neon sci-fi aesthetic | HIGH | MEDIUM | P1 |
-| Error / loading states | HIGH | LOW | P1 |
-| Temperature unit toggle | MEDIUM | LOW | P1 |
-| Geocoding (zip to coords) | HIGH | LOW | P1 (required dependency) |
-| UV Index | MEDIUM | LOW | P2 |
-| Pressure + humidity extras | MEDIUM | LOW | P2 |
-| Sunrise / sunset | MEDIUM | LOW | P2 |
-| AQI display | MEDIUM | MEDIUM | P2 |
-| Animated particle effects | MEDIUM | HIGH | P2 |
-| Precipitation probability | HIGH | LOW | P2 |
-| Multi-day forecast | HIGH | HIGH | P3 |
-| Severe weather alerts | HIGH | HIGH | P3 |
-| Radar map | LOW | HIGH | P3 |
-| System tray mode | MEDIUM | HIGH | P3 |
+| Location persistence (survive restart) | HIGH | MEDIUM | P1 — broken without it |
+| Auto-refresh + last-updated | HIGH | LOW | P1 — settings already expose interval |
+| Hourly forecast strip (12h) | HIGH | MEDIUM | P1 — core stated requirement |
+| Precipitation probability in hourly | HIGH | LOW | P1 — same API call, minimal render work |
+| Weather particle overlay | MEDIUM | HIGH | P1 — stated milestone requirement; differentiator |
+| Smooth location-switch transition | MEDIUM | LOW | P1 — stated milestone requirement |
+| Windows installer (.exe) | HIGH | MEDIUM | P1 — stated milestone requirement |
+| Refresh countdown indicator | LOW | LOW | P2 — nice UX polish; not blocking |
+| Wind gusts per hour | LOW | LOW | P3 — available in API; not needed for clarity |
 
 **Priority key:**
-- P1: Must have for launch
-- P2: Should have, add when possible
-- P3: Nice to have, future consideration
+- P1: Must have for v1.1 milestone
+- P2: Add if time allows
+- P3: Defer to v2
 
 ---
 
-## Competitor Feature Analysis
+## Implementation Details Per Feature
 
-| Feature | MSN Weather (Windows built-in) | Lively Weather (open source) | WeatherDeck (this project) |
-|---------|-------------------------------|------------------------------|---------------------------|
-| Current conditions | Yes | Yes | Yes |
-| Hourly forecast | Yes (10-day hourly) | Yes | Yes (12-24 hrs) |
-| Multi-day forecast | Yes (10 days) | Yes (7 days) | No (v2) |
-| Multiple locations | Yes | Yes | Yes |
-| Auto-refresh | Yes | Yes | Yes + configurable interval |
-| UV Index | Yes | Yes | Yes (v1.x) |
-| AQI | Yes | Yes | Yes (v1.x) |
-| Radar map | Yes | No | No (v2+) |
-| Severe weather alerts | Yes | No | No (v2) |
-| System tray | Yes (Windows widget) | No | No (v2) |
-| Dark/sci-fi aesthetic | No (generic MSN blue) | No (modern minimal) | YES — core identity |
-| Animated weather effects | No | No | v1.x target |
-| Open data sources | No | Yes (Open-Meteo) | TBD (OWM recommended) |
-| Privacy (no tracking) | No (Microsoft telemetry) | Yes | Yes (local-only) |
+### Auto-Refresh Timer
 
-**Observation:** No existing Windows desktop weather app combines a sci-fi neon aesthetic with solid core weather data. Lively Weather is the closest competitor on privacy/openness but has a conventional modern look. MSN Weather has features but is bloated and Microsoft-branded. The neon aesthetic is a genuine differentiator in this space.
+**Pattern:** `useEffect` with `setInterval` in a new `useAutoRefresh` hook or inline in App.tsx.
+
+```typescript
+// Pseudocode — reads refreshInterval from settings (minutes), calls refetch()
+useEffect(() => {
+  if (!activeLocation || settings.refreshInterval <= 0) return
+  const ms = settings.refreshInterval * 60 * 1000
+  const id = setInterval(refetch, ms)
+  return () => clearInterval(id)
+}, [activeLocation, settings.refreshInterval, refetch])
+```
+
+**Stale data on failure:** Already handled by `useWeather.ts` — keeps last successful data, shows "Could not refresh" warning. No new logic needed.
+
+**Countdown display:** Separate `useEffect` with 1-second `setInterval` decrementing a display counter. Reset when `lastUpdated` changes. Format as "Refresh in Xm Ys".
+
+**Electron throttling risk:** When app window is minimized or hidden, Chromium throttles `setInterval` in the renderer. Mitigation: move the timer to main process via `ipcMain` if throttling is observed; OR set `backgroundThrottling: false` in BrowserWindow webPreferences. For a 5-minute interval, throttling to 1-minute resolution is still acceptable — document this tradeoff.
+
+### Hourly Forecast API Extension
+
+**Add to existing `weather.ts` `fetchWeather` call:**
+
+```typescript
+hourly: 'temperature_2m,weather_code,precipitation_probability',
+forecast_hours: '12',  // Open-Meteo supports this; returns next 12 hourly slots
+```
+
+**Response shape** — Open-Meteo returns parallel arrays:
+```json
+{
+  "hourly": {
+    "time": ["2026-03-01T14:00", "2026-03-01T15:00", ...],
+    "temperature_2m": [45.2, 44.8, ...],
+    "weather_code": [3, 3, ...],
+    "precipitation_probability": [10, 15, ...]
+  }
+}
+```
+
+Zip these into an array of `HourlySlot` objects in the parser. Return as `hourly: HourlySlot[]` on the `WeatherData` type.
+
+**UI:** Horizontal scroll container (`overflow-x: auto; display: flex; gap`). Each card: time label (12h format), condition icon (from `weatherCodeMap.ts`), temperature, precipitation probability as a percentage. Styled to match existing neon card aesthetic.
+
+### Location Persistence
+
+**New electron-conf keys:**
+- `locations: LocationInfo[]` — array; default `[]`
+- `activeLocationIndex: number` — default `0`
+
+**New IPC handlers (main process):**
+- `locations:getAll` → returns `LocationInfo[]`
+- `locations:save` → accepts full array, writes to conf
+- `locations:delete` → accepts zip string, filters array, writes
+
+**App.tsx initialization change:**
+```typescript
+// On mount: load locations from IPC instead of useState([])
+useEffect(() => {
+  window.electronAPI.getLocations().then(setLocations)
+}, [])
+```
+
+Location add/remove calls both update React state AND persist via IPC. No other component changes needed.
+
+### Weather Particle Overlay
+
+**Architecture:** Fixed-position `<canvas>` element rendered at app root level, full viewport, pointer-events: none, z-index below UI content.
+
+**Condition mapping** (uses existing `weatherCode` from `WeatherData`):
+- WMO codes 51-67, 80-82: Rain — diagonal streak particles, blue-cyan tint
+- WMO codes 71-77, 85-86: Snow — circular drifting flakes, white with glow
+- WMO codes 45, 48: Fog — slow horizontal opacity layers, grey
+- WMO codes 0, 1: Clear — optional subtle star-field or ambient glow pulse (keep minimal)
+- All others: No particles (overcast, thunderstorm can use ambient flicker instead)
+
+**Particle loop structure:**
+```typescript
+// Each frame: clear canvas, update positions, draw
+const animate = () => {
+  if (document.visibilityState === 'hidden') return // pause when hidden
+  ctx.clearRect(0, 0, W, H)
+  particles.forEach(p => { p.update(); p.draw(ctx) })
+  rafId = requestAnimationFrame(animate)
+}
+```
+
+**Performance caps:** Rain: 80 particles max. Snow: 60 max. Fog: 5-8 layers. Clear: 30 stars max. All values tunable via constants.
+
+**React integration:** `useEffect` sets up canvas dimensions, creates particles array for current condition, starts `requestAnimationFrame` loop. Cleans up on unmount or weatherCode category change.
+
+### Location-Switch Transition
+
+**Pattern:** CSS opacity transition on WeatherPanel wrapper.
+
+```typescript
+// In App.tsx: transition state
+const [visible, setVisible] = useState(true)
+
+const handleSelect = (index: number) => {
+  setVisible(false) // fade out (~200ms)
+  setTimeout(() => {
+    setActiveIndex(index)
+    setVisible(true) // fade in
+  }, 200)
+}
+```
+
+```css
+.weather-panel-wrapper {
+  transition: opacity 200ms ease-in-out;
+  opacity: var(--panel-opacity, 1);
+}
+```
+
+Animate only `opacity` and `transform` (GPU composited). Never animate width/height/margin/padding.
+
+### Windows Installer
+
+**electron-builder configuration** (in `package.json` build section):
+```json
+{
+  "win": {
+    "target": ["nsis"],
+    "icon": "resources/icon.ico"
+  },
+  "nsis": {
+    "oneClick": true,
+    "perMachine": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "WeatherDeck"
+  }
+}
+```
+
+**SmartScreen reality:** Unsigned apps trigger "Windows protected your PC" dialog. This is NOT a bug — it's expected for unsigned applications. Resolution: document clearly in README that user clicks "More info" then "Run anyway". This is standard practice for unsigned open-source software distributed directly.
+
+**Code signing options** (for future reference):
+- Azure Trusted Signing: eliminates SmartScreen; available to US/Canada developers; costs ~$10/month
+- EV Certificate: $300-600/year; requires hardware token; eliminates SmartScreen
+- For this milestone: unsigned NSIS + documentation is the correct choice
+
+**Build artifact:** `dist/WeatherDeck-Setup-x.y.z.exe` — single file users download and run.
+
+---
+
+## Competitor Feature Analysis (v1.1 Scope)
+
+| Feature | MSN Weather (Windows) | Lively Weather (open source) | WeatherDeck v1.1 |
+|---------|----------------------|------------------------------|------------------|
+| Hourly forecast | Yes (10-day hourly) | Yes | Yes (12 hours) |
+| Multiple locations persistent | Yes | Yes | Yes (electron-conf) |
+| Auto-refresh | Yes (fixed interval) | Yes | Yes (configurable) |
+| Refresh countdown | No | No | Yes (P2 — differentiator) |
+| Animated weather effects | No | No | Yes (particle canvas) |
+| Dark/neon aesthetic | No | No | Yes — core identity |
+| Windows installer | Yes | Yes | Yes (NSIS) |
+| Open data, no tracking | No | Yes | Yes (Open-Meteo) |
 
 ---
 
 ## Sources
 
-- [MakeUseOf: Best Weather Apps for Windows](https://www.makeuseof.com/best-weather-apps-windows/) — MEDIUM confidence (competitor feature analysis)
-- [Lively Weather Windows Forum writeup](https://windowsforum.com/threads/lively-weather-the-free-open-source-weather-app-transforming-windows-desktop.361302/) — MEDIUM confidence (open-source competitor analysis)
-- [OpenWeatherMap API overview](https://openweathermap.org/api) — HIGH confidence (official source; free tier capabilities)
-- [getambee.com WeatherAPI.com vs OWM comparison](https://www.getambee.com/blogs/best-weather-apis) — MEDIUM confidence (third-party but consistent with official sources)
-- [Clustox Weather App Development Guide 2026](https://www.clustox.com/blog/weather-app-development-guide/) — LOW confidence (aggregator/dev shop; useful for feature tiering concept)
-- [Weather app UX best practices — design4users, devoq.io](https://design4users.com/weather-in-ui-design-come-rain-or-shine/) — MEDIUM confidence (UX community consensus)
-- [ForecastWatch accuracy research 2025](https://forecastwatch.com/2025/01/30/most-accurate-weather-app-identified-sort-of/) — MEDIUM confidence (user behavior research)
-- [Weather app user research — ResearchGate](https://www.researchgate.net/publication/376959331_A_Change_in_the_Weather_Understanding_Public_Usage_of_Weather_Apps) — MEDIUM confidence (academic study on usage patterns)
+- [Open-Meteo API documentation](https://open-meteo.com/en/docs) — HIGH confidence (official; verified hourly fields including `precipitation_probability`, `forecast_hours` parameter)
+- [electron-builder NSIS documentation](https://www.electron.build/nsis.html) — HIGH confidence (official; verified oneClick, perMachine, shortcut options)
+- [Electron code signing documentation](https://www.electronjs.org/docs/latest/tutorial/code-signing) — HIGH confidence (official; confirmed SmartScreen behavior for unsigned apps)
+- [electron-builder Windows target options](https://www.electron.build/win.html) — HIGH confidence (official; confirmed NSIS, portable targets)
+- [react-snowfall — canvas-based React snowfall component](https://github.com/cahilfoley/react-snowfall) — MEDIUM confidence (reference for particle pattern; requestAnimationFrame + Canvas 2D)
+- [react-weather-effects — rain/snow/fog on canvas](https://github.com/rauschermate/react-weather-effects) — MEDIUM confidence (confirms Canvas 2D approach for weather conditions)
+- [Electron backgroundThrottling issue #9567](https://github.com/electron/electron/issues/9567) — MEDIUM confidence (confirms setInterval throttling in background; mitigation: backgroundThrottling: false)
+- [MDN CSS Transitions](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Transitions/Using) — HIGH confidence (opacity + transform = GPU composited; avoid layout-triggering properties)
+- [SmartScreen bypass for unsigned apps — Medium](https://medium.com/@techworldthink/how-to-bypass-the-windows-defender-smartscreen-prevented-an-unrecognized-app-from-starting-85ae0d717de4) — MEDIUM confidence (confirms "More info → Run anyway" flow; consistent with official Electron docs)
 
 ---
-*Feature research for: Windows desktop weather application (WeatherDeck)*
+*Feature research for: WeatherDeck v1.1 — auto-refresh, hourly forecast, multi-location persistence, weather particles, Windows installer*
 *Researched: 2026-03-01*

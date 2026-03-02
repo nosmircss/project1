@@ -1,74 +1,314 @@
 # Stack Research
 
-**Domain:** Windows desktop weather application (dark/neon UI, auto-refresh, multi-location)
+**Domain:** WeatherDeck v1.1 — auto-refresh, hourly forecast, multi-location, weather particles, Windows installer
 **Researched:** 2026-03-01
-**Confidence:** MEDIUM-HIGH (core stack HIGH, API choices MEDIUM due to OWM credit card requirement pitfall)
+**Confidence:** HIGH (all additions verified against official sources and npm; existing stack confirmed in package.json)
 
 ---
 
-## Recommended Stack
+## Context: What Already Exists (DO NOT re-add)
 
-### Core Technologies
+The following are already installed and validated in v1.0. This file covers ONLY additions needed for v1.1.
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| Electron | 40.x (latest stable) | Desktop shell / platform | Mature, massive ecosystem, Chromium-based renderer means pixel-perfect CSS neon/glow UI with zero browser-compat issues. VS Code and Slack ship on it. Windows packaging is first-class with electron-builder. |
-| React | 18.x | UI framework | Standard for Electron + web-tech UIs. Huge component ecosystem, hooks model maps cleanly to auto-refresh polling and reactive state. electron-vite ships react-ts template out of the box. |
-| TypeScript | 5.x | Language | Type safety across IPC boundaries (main ↔ renderer) catches entire class of Electron-specific bugs at compile time, not runtime. |
-| Vite (via electron-vite) | 5.x (electron-vite 5.0) | Build tooling | electron-vite 5.0 (released Dec 2025) is the de facto standard for modern Electron development. HMR in renderer, proper main/preload/renderer separation, isolatedEntries for multi-entry builds. Replaces webpack-based approaches entirely. |
-| Tailwind CSS | 4.x | Styling | v4 eliminates config file entirely, uses CSS variables natively. Dark-first utility classes + arbitrary values (`shadow-[0_0_20px_#00f0ff]`) make neon glow effects trivial to compose without custom CSS files. |
-
-### Weather API
-
-**Recommended: Open-Meteo**
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| Open-Meteo | REST API (v1) | Weather data source | Completely free, no API key, no credit card, no registration. 10,000 calls/day limit (vs OWM's 1,000 with credit card on file). Returns hourly forecast for 7-48 hours. Non-commercial use is free. Eliminates the most significant onboarding friction and API key management overhead. |
-| Open-Meteo Geocoding API | REST API (v1) | City name → coordinates | Companion geocoding endpoint. Accepts search term, returns lat/lon. Zip codes must be converted to city name or lat/lon first (see note below). |
-
-**Zip code → coordinates:** Use the US Census Geocoder or a static zip-code-to-lat-lon lookup table (npm package `zipcodes` or `us-zips`) to convert zip codes to coordinates client-side. Open-Meteo then accepts those coordinates. This avoids requiring any external geocoding API key.
-
-### Supporting Libraries
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| electron-store | 10.x | Persistent user settings | Storing saved zip codes, refresh interval, UI preferences. Requires Electron 30+. Saves to JSON in `app.getPath('userData')`. Use this for all user config. |
-| TanStack Query (React Query) | v5 | Data fetching + auto-refresh | `refetchInterval` handles configurable polling intervals cleanly. Built-in caching prevents redundant API calls during rapid location switches. Stale-while-revalidate pattern makes the UI feel instant. |
-| Zustand | 5.x | Client state management | Lightweight global state for active location, UI state (selected tab, settings panel open). Simpler than Redux for this app's scope. `@zubridge/electron` package available if main-process state sync is needed. |
-| date-fns | 3.x | Date/time formatting | Formatting hourly forecast timestamps (e.g., "3 PM", "Tonight"). Lighter than dayjs for tree-shaking. |
-| us-zips | latest | Zip code → lat/lon lookup | Static dataset of US zip codes with lat/lon. Zero API calls, instant resolution, works offline. |
-
-### Development Tools
-
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| electron-builder | Windows packaging / installer | Produces `.exe` NSIS installer and portable builds. Integrates with electron-vite. Configure `nsis` target for standard Windows installer. |
-| ESLint + Prettier | Linting and formatting | electron-vite scaffolded templates include ESLint config. Add Prettier for consistent formatting. |
-| Vitest | Unit testing | Vite-native test runner. Mocks Electron IPC for unit tests without spinning up full Electron runtime. |
-| electron-devtools-installer | Chrome DevTools in Electron | Install React DevTools in the Electron renderer window during development. |
+| Already Present | Version | Notes |
+|-----------------|---------|-------|
+| Electron | 39.2.6 | Main process, contextBridge IPC |
+| React | 19.2.1 | Renderer UI |
+| TypeScript | 5.9.3 | Full type coverage |
+| Tailwind CSS | 4.2.1 | @tailwindcss/vite plugin |
+| electron-vite | 5.0.0 | Build system |
+| electron-builder | 26.0.12 | Already in devDependencies — just needs config |
+| electron-conf | 1.3.0 | Settings persistence via IPC |
+| zipcodes-us | 1.1.2 | Offline zip → lat/lon resolution |
+| Open-Meteo REST | v1 | Current-conditions endpoint already wired |
+| Vitest | 4.0.18 | 31 passing tests |
 
 ---
 
-## Installation
+## New Stack Additions for v1.1
+
+### Feature 1: Auto-Refresh (Main-Process Timer)
+
+**Verdict: No new library needed. Use Node.js `setInterval` in main process.**
+
+The correct pattern for Electron auto-refresh is a `setInterval` in the main process that pushes a trigger to the renderer via `webContents.send`. This is the standard Electron IPC push pattern, keeps network calls in the renderer (where fetch is available), and respects contextIsolation.
+
+**Pattern (confirmed from Electron IPC docs):**
+
+```typescript
+// main/index.ts
+let refreshTimer: NodeJS.Timeout | null = null
+
+function startRefreshTimer(intervalMs: number, win: BrowserWindow) {
+  if (refreshTimer) clearInterval(refreshTimer)
+  refreshTimer = setInterval(() => {
+    if (!win.isDestroyed()) {
+      win.webContents.send('weather:refresh-tick')
+    }
+  }, intervalMs)
+}
+
+// When user changes interval via settings:
+ipcMain.handle('timer:set-interval', (_e, ms: number) => {
+  startRefreshTimer(ms, mainWindow)
+  return { ok: true }
+})
+```
+
+```typescript
+// renderer — listen in useEffect
+window.api.onRefreshTick(() => refetch())
+```
+
+**Why main-process timer, not renderer `setInterval`:**
+- Renderer `setInterval` throttles to 1 Hz when window is backgrounded (Chromium battery optimization — confirmed issue #4465 in electron/electron)
+- Main-process Node.js timer is unaffected by window focus/visibility
+- Consistent with existing IPC patterns in this codebase
+
+**Why not TanStack Query `refetchInterval`:** TanStack Query would add ~12 KB and its `refetchInterval` pauses on window blur by default. The main-process push timer is simpler and more reliable for this use case. The project does not have complex caching needs that would justify TanStack Query's full API surface.
+
+---
+
+### Feature 2: Hourly Forecast (Open-Meteo Hourly Endpoint)
+
+**Verdict: No new library needed. Extend existing fetch with `&hourly=` parameters.**
+
+Open-Meteo's `/v1/forecast` endpoint already accepts an `hourly` parameter alongside `current`. Add hourly variables to the existing fetch call.
+
+**Confirmed hourly variable names (from official Open-Meteo docs):**
+
+| Variable | Parameter Name | Notes |
+|----------|---------------|-------|
+| Temperature | `temperature_2m` | 2m above ground, respects `temperature_unit` param |
+| Apparent temperature | `apparent_temperature` | Feels-like, same units |
+| Precipitation probability | `precipitation_probability` | 0-100% |
+| Weather code | `weather_code` | WMO code — same map as current conditions |
+| Wind speed | `wind_speed_10m` | Respects `wind_speed_unit` param |
+
+**Extended URL pattern:**
+
+```
+https://api.open-meteo.com/v1/forecast
+  ?latitude={lat}&longitude={lon}
+  &current=temperature_2m,apparent_temperature,weather_code,...
+  &hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m
+  &forecast_days=1
+  &timezone=auto
+  &temperature_unit={celsius|fahrenheit}
+  &wind_speed_unit={kmh|mph}
+```
+
+**`forecast_days=1` returns 24 hourly entries (0:00 to 23:00 today).** Use `forecast_days=2` for next-day overflow if showing 24 hours from now. The API returns time as ISO strings; parse with `new Date()` — no date library needed.
+
+**API rate limit:** 10,000 calls/day. At 5-minute refresh with 5 locations, worst case is 288 calls/day — well within limits.
+
+---
+
+### Feature 3: Multi-Location Persistence
+
+**Verdict: No new library needed. Extend existing electron-conf schema.**
+
+The project already uses `electron-conf` for settings persistence via explicit IPC. Multi-location is a schema extension, not a new library.
+
+**Extend electron-conf schema:**
+
+```typescript
+// Existing: { tempUnit, windUnit, refreshInterval }
+// Add:
+interface AppConfig {
+  tempUnit: 'celsius' | 'fahrenheit'
+  windUnit: 'kmh' | 'mph'
+  refreshInterval: number  // ms
+  locations: Location[]    // NEW
+  activeLocationIndex: number  // NEW
+}
+
+interface Location {
+  zip: string
+  city: string    // resolved at save time
+  state: string   // resolved at save time
+  lat: number     // resolved at save time from zipcodes-us
+  lon: number     // resolved at save time from zipcodes-us
+}
+```
+
+**Resolve zip → coordinates at save time** using the existing `zipcodes-us` package (already installed). Never re-resolve on fetch.
+
+**IPC handlers to add:**
+
+```typescript
+ipcMain.handle('locations:add', (_e, zip: string) => { ... })
+ipcMain.handle('locations:remove', (_e, index: number) => { ... })
+ipcMain.handle('locations:set-active', (_e, index: number) => { ... })
+ipcMain.handle('locations:list', () => conf.get('locations'))
+```
+
+This follows the existing `namespace:verb` IPC pattern already established in v1.0.
+
+---
+
+### Feature 4: Weather Particle Animations
+
+**Recommendation: Custom canvas component with `useRef` + `requestAnimationFrame`. No library.**
+
+**Why no library:**
+- `@tsparticles/react` v3.0.0 was last published 2 years ago (LOW confidence in active maintenance)
+- tsParticles is not officially listed as Electron-compatible
+- `react-snowfall` v2.4.0 (Dec 2025) is canvas-based but only handles snow
+- A custom `useCanvas` hook is ~80 lines and gives full control over particle types: rain, snow, fog drift, clear sparkle, thunderstorm
+
+**Custom pattern (HIGH confidence — standard React + Canvas):**
+
+```typescript
+// src/renderer/hooks/useWeatherCanvas.ts
+export function useWeatherCanvas(
+  canvasRef: RefObject<HTMLCanvasElement>,
+  weatherCode: number,
+  active: boolean
+) {
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !active) return
+    const ctx = canvas.getContext('2d')!
+    const particles = initParticles(weatherCode) // rain | snow | fog | clear
+    let animId: number
+
+    const tick = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      particles.forEach(p => { update(p); draw(ctx, p) })
+      animId = requestAnimationFrame(tick)
+    }
+    animId = requestAnimationFrame(tick)
+
+    return () => cancelAnimationFrame(animId)
+  }, [weatherCode, active])
+}
+```
+
+**Particle types by WMO weather code range:**
+
+| Code Range | Condition | Particle Effect |
+|------------|-----------|-----------------|
+| 0 | Clear | Subtle shimmer/sparkle |
+| 1–3 | Partly cloudy | Slow-drifting fog wisps |
+| 45–48 | Fog | Dense fog drift particles |
+| 51–67 | Drizzle / Rain | Angled rain streaks |
+| 71–77 | Snow | Falling snowflakes |
+| 80–82 | Rain showers | Heavy rain streaks |
+| 95–99 | Thunderstorm | Rain + lightning flash |
+
+**Electron compatibility:** Canvas 2D API is fully supported in Chromium (Electron's renderer). No issues.
+
+**Performance target:** 60fps with ≤200 particles. Use `requestAnimationFrame`, avoid layout reads in tick loop.
+
+---
+
+### Feature 5: Smooth Location-Switch Transitions
+
+**Recommendation: `motion` (formerly framer-motion) for cross-fade transitions.**
+
+| Library | Version | Why |
+|---------|---------|-----|
+| `motion` | 12.x (12.34.3 as of 2026-03-01) | Official successor to `framer-motion`. React 19 compatible (requires React 18.2+). AnimatePresence + exit animations handle location switch cross-fades. ~25 KB gzipped. |
+
+**Why `motion` over CSS transitions:**
+- Location switch involves unmounting old weather data and mounting new — React's lifecycle makes this hard to animate with pure CSS
+- `AnimatePresence` detects component removal and runs exit animations before unmount
+- The library's `layout` prop handles smooth size changes when hourly forecast row count differs
+
+**Minimal integration pattern:**
+
+```tsx
+import { AnimatePresence, motion } from 'motion/react'
+
+<AnimatePresence mode="wait">
+  <motion.div
+    key={activeLocation.zip}
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -8 }}
+    transition={{ duration: 0.25 }}
+  >
+    <WeatherPanel location={activeLocation} />
+  </motion.div>
+</AnimatePresence>
+```
+
+**Note:** `framer-motion` package name still works (same codebase, different package name). The canonical package is now `motion`. Import from `motion/react` for the React bindings.
+
+---
+
+### Feature 6: Windows Installer
+
+**Verdict: electron-builder already in devDependencies at 26.0.12 (latest stable: 26.8.1). Just needs `build` config in package.json.**
+
+`build:win` script already exists: `"build:win": "npm run build && electron-builder --win"`. Only configuration is missing.
+
+**Recommended electron-builder config block in package.json:**
+
+```json
+"build": {
+  "appId": "com.weatherdeck.app",
+  "productName": "WeatherDeck",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "out/**/*",
+    "!out/**/*.map"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "resources/icon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "installerIcon": "resources/installer-icon.ico",
+    "deleteAppDataOnUninstall": false
+  }
+}
+```
+
+**SmartScreen situation (MEDIUM confidence — from official electron-builder docs + GitHub issues):**
+
+- Without a code signing certificate, Windows Defender SmartScreen will show a warning on first run
+- This is a UI warning ("Windows protected your PC"), not a hard block — user can click "More info → Run anyway"
+- **Mitigation (no-cost approach):** Document the bypass steps in a README. This is acceptable for personal/internal tools
+- **Paid mitigation:** Standard Authenticode Code Signing certificate (~$100-300/year) removes the warning for users. EV certificate (~$300-500/year) removes it immediately without needing reputation buildup
+- **Microsoft Azure Trusted Signing** (as of Oct 2025): Available to US/Canada businesses with 3+ years history and individual developers in US/Canada — lower cost alternative to EV cert
+
+**Icon requirement:** electron-builder needs a `.ico` file at the path specified in `win.icon`. Create `resources/icon.ico` (256x256 minimum, ICO format with multiple sizes embedded).
+
+---
+
+## Full Installation Delta for v1.1
 
 ```bash
-# Scaffold with electron-vite (react-ts template)
-npm create @quick-start/electron@latest weatherdeck -- --template react-ts
-cd weatherdeck
+# Transition animations (new)
+npm install motion
 
-# Core dependencies
-npm install @tanstack/react-query zustand electron-store date-fns
+# electron-builder already installed at ^26.0.12
+# No other new runtime dependencies needed
 
-# Tailwind CSS v4
-npm install tailwindcss @tailwindcss/vite
-
-# Utility: zip code resolution
-npm install us-zips
-
-# Dev dependencies
-npm install -D electron-builder vitest @testing-library/react
+# Icon conversion tool (dev only, one-time)
+npm install -D png-to-ico
 ```
+
+**Canvas particle system:** No install — implemented as a custom hook using browser APIs.
+
+**Auto-refresh timer:** No install — Node.js `setInterval` in main process.
+
+**Hourly forecast:** No install — extend existing Open-Meteo fetch call.
+
+**Multi-location:** No install — extend existing electron-conf schema and IPC handlers.
 
 ---
 
@@ -76,15 +316,12 @@ npm install -D electron-builder vitest @testing-library/react
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| Electron | Tauri | If Rust expertise exists on team and bundle size/RAM are critical constraints. Tauri's ~5 MB bundle vs Electron's ~150 MB is compelling, but CSS rendering quirks from WebView2 on Windows can affect neon/glow effects. For a purely visual app like this, Chromium's rendering predictability in Electron is worth the tradeoff. |
-| Electron | WinUI / WPF | If team has C#/.NET background and wants deep Windows OS integration. Overkill for a weather display app; Electron's web-tech stack is faster to develop and easier to style with dark/neon CSS. |
-| Electron | .NET MAUI | If existing .NET codebase or targeting multiple form factors (desktop + mobile). MAUI's dark theme and custom styling are less mature than CSS-based approaches for neon aesthetics. |
-| Open-Meteo | OpenWeatherMap | If needing "feels like" temperature, detailed weather condition codes (rain intensity), or One Call API for minutely precipitation. OWM One Call 3.0 has 1,000 free calls/day but **requires a credit card on file** — a user-hostile onboarding requirement. OWM is better if the project eventually needs more detailed data. |
-| Open-Meteo | WeatherAPI.com | WeatherAPI.com has reduced free tier access (reports vary; some sources indicate the free plan was restricted). Unverified current state — avoid until confirmed. |
-| TanStack Query | SWR | Both are valid. TanStack Query v5 has more granular `refetchInterval` control and better DevTools. SWR is simpler but less configurable for polling. |
-| us-zips (local) | Google Maps Geocoding | Google requires API key and billing setup. Local lookup is instant and free. |
-| Tailwind CSS | CSS Modules | Both work. Tailwind v4 arbitrary values (`shadow-[0_0_30px_rgba(0,240,255,0.7)]`) make one-off neon effects trivial without switching to a separate CSS file. CSS Modules are valid if team prefers explicit stylesheets. |
-| Zustand | Redux Toolkit | Redux is overkill for this app's state surface area. Zustand stores saved locations and active location; no need for reducers, middleware, or Redux DevTools. |
+| Custom canvas hook (particles) | `@tsparticles/react` | If particle variety and configurability requirements grow significantly (15+ effect types). Current v3.0.0 has 2-year-old publish date — validate maintenance status before adopting. |
+| Custom canvas hook (particles) | `react-snowfall` | Only viable if scope is limited to snow effects. Too narrow for rain/fog/thunderstorm requirements. |
+| `motion` (animations) | CSS `transition` + `opacity` | Acceptable if location switch UX doesn't need exit animations — simpler, zero dependency. Test CSS approach first; add `motion` only if timing feels janky. |
+| `motion` (animations) | `react-spring` | React Spring 10.0.1 is valid alternative with physics-based springs. `motion`'s AnimatePresence has better unmount-animation support which is the key requirement here. |
+| Main-process `setInterval` (timer) | TanStack Query `refetchInterval` | Use TanStack Query if the project later needs caching, parallel queries, or deduplication across multiple components. Overkill for single-fetch, single-location pattern. |
+| NSIS installer | Portable `.exe` (no installer) | Portable requires no install but has no Start Menu entry, no Add/Remove Programs entry. Use if distribution is informal (USB stick, email). |
 
 ---
 
@@ -92,64 +329,57 @@ npm install -D electron-builder vitest @testing-library/react
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| OpenWeatherMap One Call API 3.0 (as primary) | Requires credit card on file even for free tier — creates unnecessary friction for a hobby/personal app. 1,000 calls/day limit is also tighter than Open-Meteo's 10,000. | Open-Meteo (no key, no card, 10k/day) |
-| Electron v1.x–v29.x boilerplates | electron-store 10.x requires Electron 30+. Many older tutorials and GitHub templates target ancient Electron versions. Starting fresh with electron-vite 5.0 gets current versions. | `npm create @quick-start/electron@latest` |
-| webpack-based electron config (electron-webpack, electron-forge webpack template) | Webpack is slow and the ecosystem is moving to Vite. electron-vite 5.0 is the modern standard. | electron-vite 5.0 |
-| SQLite / full database | Overkill for storing a handful of zip codes and a settings object. Adds native addon compilation complexity on Windows. | electron-store (JSON file, zero native deps) |
-| React Native for Windows | Different mental model, different styling primitives, separate ecosystem from web React. CSS neon effects require web-CSS knowledge — RNW abstracts that away into StyleSheet which is harder to achieve glow effects in. | Electron + React + Tailwind |
-| Electron IPC without typed contracts | Untyped IPC messages between main/renderer cause silent bugs. | Use TypeScript interfaces shared between main and renderer for all IPC channels. |
-
----
-
-## Stack Patterns by Variant
-
-**If the app eventually needs system tray / widget mode (v2 scope):**
-- Use Electron's `Tray` API + a separate `BrowserWindow` with `frame: false` and `transparent: true`
-- Neon CSS effects render correctly in frameless transparent windows
-- Keep main window and tray window as separate renderer entries in electron-vite's `isolatedEntries`
-
-**If refresh interval is user-configurable (it is, per requirements):**
-- Store interval in `electron-store` (persisted)
-- Pass to TanStack Query's `refetchInterval` dynamically: `useQuery({ refetchInterval: userInterval })`
-- Do not use `setInterval` directly — TanStack Query handles window focus/blur pausing automatically
-
-**If multiple zip codes are saved:**
-- Store as array in `electron-store`: `{ locations: [{ zip: '10001', name: 'New York, NY', lat: 40.75, lon: -73.99 }] }`
-- Resolve zip → lat/lon once at save time using `us-zips`, store coordinates
-- Active location index stored in Zustand (ephemeral, reset to 0 on launch)
+| `react-tsparticles` (old package) | Deprecated — replaced by `@tsparticles/react`. Even that is 2 years stale. | Custom canvas hook |
+| `setInterval` in renderer process | Chromium throttles renderer timers to 1 Hz when window is backgrounded. Weather refresh would silently stop working when user switches apps. | `setInterval` in main process + `webContents.send` push |
+| TanStack Query for this feature set | Adds ~12 KB for `refetchInterval` functionality that main-process timer provides with 10 lines of code. Complexity-to-benefit ratio is poor. | Node.js `setInterval` in main |
+| `framer-motion` package name | Still works but officially replaced by `motion`. New projects should use `motion` package. | `npm install motion` |
+| Multiple `.ico` files | NSIS expects one multi-size `.ico`. Use a single ICO with embedded sizes (16, 32, 48, 64, 128, 256). | Single ICO with embedded sizes |
+| `electron-store` | Already resolved in v1.0 — `electron-conf` is the correct choice for this CJS electron-vite build. `electron-store` is ESM-only and causes friction. | `electron-conf` (already installed) |
 
 ---
 
 ## Version Compatibility
 
-| Package | Compatible With | Notes |
-|---------|-----------------|-------|
-| electron-store 10.x | Electron 30+ | ESM-only. Use `import` not `require`. |
-| electron-vite 5.0 | Node.js 20.19+ or 22.12+, Vite 5.0+ | Requires modern Node. |
-| TanStack Query v5 | React 18+ | v5 dropped React 16/17 support. |
-| Tailwind CSS v4 | No `tailwind.config.js` | Config moved to CSS file via `@import "tailwindcss"`. Breaking change from v3. |
-| @tanstack/react-query + Zustand | No known conflicts | Both work in renderer process; no IPC needed. |
+| Package | Version | Compatible With | Notes |
+|---------|---------|-----------------|-------|
+| `motion` | 12.34.3 | React 18.2+, React 19 | Import from `motion/react` not `framer-motion` |
+| `electron-builder` | 26.0.12 (installed) / 26.8.1 (latest) | Electron 39.x | Already installed; update optional before release |
+| Open-Meteo hourly | API v1 | — | Same endpoint as current, add `&hourly=` param |
+| Canvas 2D API | built-in | Chromium (Electron renderer) | No compatibility issues; standard web API |
+| Node.js `setInterval` | built-in | Node.js 20+ (main process) | No compatibility issues |
+
+---
+
+## Integration Points Map
+
+| Feature | Touch Points | Notes |
+|---------|-------------|-------|
+| Auto-refresh | main/index.ts (timer), preload (expose onRefreshTick), renderer hook | Follows existing IPC namespace:verb pattern |
+| Hourly forecast | src/renderer/lib/weather.ts (extend fetch), new HourlyForecast component | Add `hourly` array to existing WeatherData type |
+| Multi-location | electron-conf schema, 4 new IPC handlers, LocationManager component | Reuse existing settings IPC pattern |
+| Particle canvas | New WeatherCanvas component + useWeatherCanvas hook | Canvas overlaid on weather panel, z-index managed |
+| Location transitions | Wrap WeatherPanel in AnimatePresence + motion.div | Key prop = active zip code |
+| Windows installer | package.json `build` block, `resources/icon.ico` | `build:win` script already exists |
 
 ---
 
 ## Sources
 
-- [Electron Releases (GitHub)](https://github.com/electron/electron/releases/) — confirmed v40.6.1 as latest stable (Feb 2026)
-- [electron-vite Getting Started](https://electron-vite.org/guide/) — confirmed v5.0.0, Node 20.19+ requirement
-- [electron-vite 5.0 blog post](https://electron-vite.org/blog/) — confirmed Dec 2025 release, isolatedEntries feature
-- [Tauri vs Electron comparison (DoltHub, Nov 2025)](https://www.dolthub.com/blog/2025-11-13-electron-vs-tauri/) — confirmed performance tradeoffs
-- [Windows desktop framework comparison 2026 (Tibicle)](https://tibicle.com/blog/best-framework-for-desktop-application-in-2026) — ecosystem overview
-- [Open-Meteo official docs](https://open-meteo.com/en/docs) — confirmed no API key, 10k/day limit, hourly forecast
-- [Open-Meteo Geocoding API](https://open-meteo.com/en/docs/geocoding-api) — confirmed name-based lookup (not zip-code native)
-- [OpenWeatherMap One Call API 3.0](https://openweathermap.org/api/one-call-3) — confirmed credit card required, 1,000 calls/day free tier
-- [OpenWeatherMap transfer guide](https://openweathermap.org/one-call-transfer) — confirmed credit card requirement for free tier
-- [electron-store GitHub](https://github.com/sindresorhus/electron-store) — confirmed Electron 30+ requirement, ESM-only
-- [TanStack Query auto-refetching docs](https://tanstack.com/query/v5/docs/framework/react/examples/auto-refetching) — confirmed refetchInterval API
-- [Zustand npm](https://www.npmjs.com/package/zustand) — state management recommendation
-- [@zubridge/electron npm](https://www.npmjs.com/package/@zubridge/electron) — confirmed Electron IPC state bridge
-- [Tailwind v4 dark mode](https://tailwindcss.com/docs/dark-mode) — confirmed config changes in v4
+- [Open-Meteo official docs](https://open-meteo.com/en/docs) — confirmed hourly endpoint, variable names (`temperature_2m`, `precipitation_probability`, `weather_code`, `wind_speed_10m`, `apparent_temperature`), `forecast_days` param — HIGH confidence
+- [electron/electron issue #4465](https://github.com/electron/electron/issues/4465) — confirmed renderer `setInterval` throttling in background — HIGH confidence
+- [Electron IPC Tutorial](https://www.electronjs.org/docs/latest/tutorial/ipc) — confirmed `webContents.send` push pattern — HIGH confidence
+- [electron-builder npm](https://www.npmjs.com/package/electron-builder) — confirmed version 26.8.1 latest (published ~12 days ago as of 2026-03-01) — HIGH confidence
+- [electron-builder NSIS docs](https://www.electron.build/nsis.html) — confirmed `oneClick`, `allowToChangeInstallationDirectory`, NSIS options — HIGH confidence
+- [electron-builder Windows code signing](https://www.electron.build/code-signing-win.html) — confirmed SmartScreen behavior, Azure Trusted Signing availability — MEDIUM confidence
+- [electron-builder/electron-vite integration](https://electron-vite.github.io/build/electron-builder.html) — confirmed `build:win` script pattern, `dist`/`dist-electron` files config — HIGH confidence
+- [motion npm / framer-motion](https://www.npmjs.com/package/framer-motion) — confirmed version 12.34.3, React 19 compatibility, package rename to `motion` — HIGH confidence
+- [motion upgrade guide](https://motion.dev/docs/react-upgrade-guide) — confirmed `motion/react` import path — HIGH confidence
+- [react-snowfall GitHub](https://github.com/cahilfoley/react-snowfall) — confirmed v2.4.0 (Dec 2025), canvas-based, TypeScript — MEDIUM confidence (too narrow for all weather types)
+- [tsparticles/react GitHub](https://github.com/tsparticles/react) — confirmed v3.0.0, last published ~2 years ago — MEDIUM confidence (stale, not Electron-listed)
+- [Electron performance docs](https://www.electronjs.org/docs/latest/tutorial/performance) — confirmed `requestAnimationFrame` canvas pattern for renderer animations — HIGH confidence
+- [electron-builder Windows SmartScreen issue #628](https://github.com/electron-userland/electron-builder/issues/628) — confirmed warning behavior without signing — MEDIUM confidence
 
 ---
 
-*Stack research for: WeatherDeck — Windows desktop weather app*
+*Stack research for: WeatherDeck v1.1 — new feature additions only*
 *Researched: 2026-03-01*
