@@ -38,6 +38,18 @@ Users can glance at their desktop and instantly know current weather and the nex
 - Air Quality Index — defer to v2
 - International zip/postal codes — US only for v1
 
+## Current Milestone: v1.1 Feature Complete
+
+**Goal:** Add auto-refresh, hourly forecast, multi-location management, animated weather effects, and a distributable Windows installer.
+
+**Target features:**
+- Auto-refresh with configurable interval, last-updated timestamp, and countdown
+- 12-24 hour scrollable forecast with temperature, icons, and precipitation probability
+- Save/switch/delete multiple zip code locations
+- Animated weather particle effects matching current conditions
+- Smooth location-switch transitions
+- Windows .exe installer with SmartScreen documentation
+
 ## Context
 
 Shipped v1.0 with 1,625 LOC TypeScript/CSS.
@@ -69,4 +81,4 @@ Tests: 31 passing (Vitest) — zipLookup, weatherCodeMap, windDirection.
 | Settings gate pattern | Prevents stale-unit double-fetch on startup | ✓ Good — eliminates race condition |
 
 ---
-*Last updated: 2026-03-01 after v1.0 milestone*
+*Last updated: 2026-03-01 after v1.1 milestone started*
