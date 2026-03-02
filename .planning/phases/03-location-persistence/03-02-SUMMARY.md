@@ -84,9 +84,9 @@ Each task was committed atomically:
 
 1. **Task 1: Create useLocations hook and update Sidebar with delete button** - `d5e5542` (feat)
 2. **Task 2: Rewire App.tsx with useLocations and three-state startup routing** - `731126c` (feat)
-3. **Task 3: Verify complete location persistence lifecycle** - checkpoint:human-verify (pending)
+3. **Task 3: Verify complete location persistence lifecycle** - Human-verified, all 10 lifecycle steps approved
 
-**Plan metadata:** (docs commit follows)
+**Plan metadata:** (docs commit follows after state update)
 
 ## Files Created/Modified
 - `src/renderer/src/hooks/useLocations.ts` - useLocations hook with 7 return values: locations, activeZip, hasLaunched, loaded, addLocation, deleteLocation, setActiveZip
@@ -112,10 +112,10 @@ None - TypeScript compiled cleanly on both tasks. All type signatures aligned wi
 None - no external service configuration required.
 
 ## Next Phase Readiness
-- Full location persistence lifecycle is wired end-to-end: save, switch, delete, persist across restarts
-- Plan 03-02 awaiting human verification of the complete lifecycle (Task 3 checkpoint)
+- Full location persistence lifecycle is wired end-to-end and user-verified: save, switch, delete, persist across restarts
+- All LOC-01 through LOC-04 requirements met; phase 03-location-persistence is complete
 - Phase 04 (auto-refresh) can use `activeZip` from useLocations and `locationsLoaded` gate same pattern
-- No blockers
+- Blocker to resolve before Phase 4: decide `backgroundThrottling: false` vs. accept throttling before writing any interval code
 
 ## Self-Check: PASSED
 
