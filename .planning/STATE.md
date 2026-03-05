@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 4 of 6 (Hourly Forecast Auto-Refresh) — IN PROGRESS
-Plan: 2 of 4 complete (04-02 useInterval + useWeather hook refactor)
-Status: Phase 04-hourly-forecast-auto-refresh — hook layer complete (HOUR-02, HOUR-03, REFR-01, REFR-02, REFR-03)
-Last activity: 2026-03-05 — Completed 04-02 (useInterval hook + useWeather auto-refresh refactor)
+Plan: 3 of 4 complete (04-03 UI components: HourlyStrip, RefreshIndicator, SkeletonLoader update, SettingsModal dropdown)
+Status: Phase 04-hourly-forecast-auto-refresh — UI components complete (HOUR-01, REFR-02, REFR-03)
+Last activity: 2026-03-05 — Completed 04-03 (HourlyStrip, RefreshIndicator, HourlyStripSkeleton, SettingsModal dropdown)
 
 Progress: [████░░░░░░] 50% (v1.1 phases)
 
@@ -48,6 +48,7 @@ Progress: [████░░░░░░] 50% (v1.1 phases)
 *Updated after each plan completion*
 | 04-hourly-forecast-auto-refresh | 04-01 | 1min | 2 | 5 |
 | 04-hourly-forecast-auto-refresh | 04-02 | 1min | 2 | 2 |
+| 04-hourly-forecast-auto-refresh | 04-03 | 2min | 2 | 4 |
 
 ## Accumulated Context
 
@@ -73,6 +74,11 @@ Key patterns carried forward:
 - [Phase 04-hourly-forecast-auto-refresh]: retryDelayRef overrides intervalMs for useInterval delay after failed refresh — simpler than separate retry state machine
 - [Phase 04-hourly-forecast-auto-refresh]: performFetch uses fetchWithRetry (initial load), autoRefreshCallback single-attempts — different retry strategies for different contexts
 
+**04-03 decisions:**
+- [Phase 04-hourly-forecast-auto-refresh]: temperatureUnit prop on HourlyStrip received but unit symbol omitted per-column — keeps columns compact; unit label shown once in header
+- [Phase 04-hourly-forecast-auto-refresh]: Droplets icon at 10px added to precipitation % in HourlyStrip for visual clarity
+- [Phase 04-hourly-forecast-auto-refresh]: SettingsModal select uses appearance-none — removes browser default arrow for consistent neon styling
+
 ### Pending Todos
 
 None.
@@ -86,5 +92,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Completed 04-02-PLAN.md — useInterval hook and useWeather auto-refresh refactor complete. Ready for Plan 03 (hourly forecast UI component).
+Stopped at: Completed 04-03-PLAN.md — HourlyStrip, RefreshIndicator, HourlyStripSkeleton, SettingsModal dropdown complete. Ready for Plan 04 (WeatherPanel wiring).
 Resume file: None
