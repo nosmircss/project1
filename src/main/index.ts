@@ -10,10 +10,10 @@ import type { LocationInfo } from '../renderer/src/lib/types'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 600,
-    height: 700,
-    minWidth: 500,
-    minHeight: 600,
+    width: 800,
+    height: 900,
+    minWidth: 600,
+    minHeight: 800,
     resizable: true,
     show: false,
     autoHideMenuBar: true,
