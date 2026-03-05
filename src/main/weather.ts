@@ -21,6 +21,12 @@ export interface OpenMeteoResult {
     temperature: string
     windSpeed: string   // always 'mph' or 'km/h' (normalized from API's "mp/h")
   }
+  hourly: {
+    time: string[]
+    temperature: number[]
+    weatherCode: number[]
+    precipProbability: number[]
+  }
 }
 
 export async function fetchWeather(
@@ -42,6 +48,8 @@ export async function fetchWeather(
     timezone: 'auto',
     forecast_days: '1'
   })
+  params.set('hourly', 'temperature_2m,weather_code,precipitation_probability')
+  params.set('forecast_hours', '24')
 
   const res = await fetch(`${BASE}?${params}`)
   if (!res.ok) throw new Error(`Weather API error: ${res.status} ${res.statusText}`)
@@ -69,6 +77,12 @@ export async function fetchWeather(
     units: {
       temperature: json.current_units?.temperature_2m || '°F',
       windSpeed: windDisplayUnit
+    },
+    hourly: {
+      time: json.hourly.time as string[],
+      temperature: json.hourly.temperature_2m as number[],
+      weatherCode: json.hourly.weather_code as number[],
+      precipProbability: json.hourly.precipitation_probability as number[]
     }
   }
 }

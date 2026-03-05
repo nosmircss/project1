@@ -9,6 +9,20 @@ export interface LocationInfo {
   displayName: string // "Denver, CO"
 }
 
+export interface HourlySlice {
+  time: string              // ISO 8601 local, e.g. "2026-03-04T15:00"
+  temperature: number       // in user's selected unit
+  weatherCode: number       // WMO code
+  precipProbability: number // 0-100
+}
+
+export interface HourlyData {
+  time: string[]
+  temperature: number[]
+  weatherCode: number[]
+  precipProbability: number[]
+}
+
 export interface WeatherData {
   temperature: number
   feelsLike: number
@@ -26,6 +40,7 @@ export interface WeatherData {
     temperature: string   // "°F" or "°C"
     windSpeed: string     // display string: always show "mph" or "km/h" (NOT raw API "mp/h")
   }
+  hourly?: HourlyData     // raw parallel arrays from API; slicing to HourlySlice[] happens in useWeather
 }
 
 export interface AppSettings {
