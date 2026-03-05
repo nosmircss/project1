@@ -30,6 +30,9 @@ function createWindow(): void {
   // Remove the application menu bar
   Menu.setApplicationMenu(null)
 
+  // Enforce minimum size programmatically (some Linux WMs ignore constructor options)
+  mainWindow.setMinimumSize(800, 800)
+
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
