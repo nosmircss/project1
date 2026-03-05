@@ -18,6 +18,7 @@ interface ElectronBridgeAPI {
   addLocation: (location: LocationData) => Promise<{ ok?: boolean; error?: string }>
   deleteLocation: (zip: string) => Promise<void>
   setActiveLocation: (zip: string | null) => Promise<void>
+  onWindowVisibility: (cb: (visible: boolean) => void) => () => void
 }
 
 declare global {

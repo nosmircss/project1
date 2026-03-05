@@ -34,6 +34,19 @@ function createWindow(): void {
     mainWindow.show()
   })
 
+  // Window visibility events → renderer (for auto-refresh pause/resume)
+  // Per RESEARCH.md: do NOT use backgroundThrottling:false or document.visibilitychange
+  // BrowserWindow events are reliable in Electron 27+
+  const sendVisibility = (visible: boolean): void =>
+    mainWindow.webContents.send('window:visibility', visible)
+
+  mainWindow.on('minimize', () => sendVisibility(false))
+  mainWindow.on('hide', () => sendVisibility(false))
+  mainWindow.on('blur', () => sendVisibility(false))
+  mainWindow.on('restore', () => sendVisibility(true))
+  mainWindow.on('show', () => sendVisibility(true))
+  mainWindow.on('focus', () => sendVisibility(true))
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }

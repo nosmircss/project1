@@ -16,5 +16,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addLocation: (location: { zip: string; city: string; stateCode: string; lat: number; lon: number; displayName: string }) =>
     ipcRenderer.invoke('locations:add', location),
   deleteLocation: (zip: string) => ipcRenderer.invoke('locations:delete', zip),
-  setActiveLocation: (zip: string | null) => ipcRenderer.invoke('locations:set-active', zip)
+  setActiveLocation: (zip: string | null) => ipcRenderer.invoke('locations:set-active', zip),
+  onWindowVisibility: (cb: (visible: boolean) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, visible: boolean): void => cb(visible)
+    ipcRenderer.on('window:visibility', listener)
+    return (): void => { ipcRenderer.removeListener('window:visibility', listener) }
+  }
 })
