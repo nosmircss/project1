@@ -41,3 +41,22 @@ export function ConditionCardSkeleton(): React.JSX.Element {
     </div>
   )
 }
+
+/**
+ * 6-column skeleton for hourly forecast strip loading state.
+ * Matches HourlyStrip layout: compact vertical columns in horizontal scroll.
+ */
+export function HourlyStripSkeleton(): React.JSX.Element {
+  return (
+    <div className="flex flex-nowrap gap-1.5 px-4 pb-3 animate-pulse">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="flex flex-col items-center gap-2 shrink-0 w-14 py-2">
+          <div className="w-8 h-3 rounded border border-neon-cyan/20 bg-neon-cyan/5" />
+          <div className="w-6 h-6 rounded-full border border-neon-cyan/20 bg-neon-cyan/5" />
+          <div className="w-8 h-3 rounded border border-neon-cyan/20 bg-neon-cyan/5" />
+          <div className="w-6 h-3 rounded border border-neon-cyan/15 bg-neon-cyan/5" />
+        </div>
+      ))}
+    </div>
+  )
+}
