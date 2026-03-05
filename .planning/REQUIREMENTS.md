@@ -9,15 +9,15 @@ Requirements for the v1.1 Feature Complete milestone. Each maps to roadmap phase
 
 ### Auto-Refresh
 
-- [ ] **REFR-01**: User sees weather data refresh automatically at the configured interval (default 5 min) without any manual action — the displayed data visibly updates when a refresh completes
-- [ ] **REFR-02**: User can see the time of the last successful data refresh, visible at all times
-- [ ] **REFR-03**: User can see a live countdown to the next auto-refresh, visible at all times
+- [x] **REFR-01**: User sees weather data refresh automatically at the configured interval (default 5 min) without any manual action — the displayed data visibly updates when a refresh completes
+- [x] **REFR-02**: User can see the time of the last successful data refresh, visible at all times
+- [x] **REFR-03**: User can see a live countdown to the next auto-refresh, visible at all times
 
 ### Hourly Forecast
 
 - [x] **HOUR-01**: User can view a scrollable hourly forecast showing temperature, weather condition icon, and precipitation probability for each of the next 12-24 hours
 - [x] **HOUR-02**: Hourly forecast starts from the current hour and shows only future hours (not past hours from midnight)
-- [ ] **HOUR-03**: Hourly forecast updates immediately when the active location changes
+- [x] **HOUR-03**: Hourly forecast updates immediately when the active location changes
 
 ### Locations
 
@@ -75,12 +75,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REFR-01 | Phase 4 | Pending |
-| REFR-02 | Phase 4 | Pending |
-| REFR-03 | Phase 4 | Pending |
+| REFR-01 | Phase 4 | Complete |
+| REFR-02 | Phase 4 | Complete |
+| REFR-03 | Phase 4 | Complete |
 | HOUR-01 | Phase 4 | Complete |
 | HOUR-02 | Phase 4 | Complete |
-| HOUR-03 | Phase 4 | Pending |
+| HOUR-03 | Phase 4 | Complete |
 | LOC-01 | Phase 3 | Complete |
 | LOC-02 | Phase 3 | Complete |
 | LOC-03 | Phase 3 | Complete |

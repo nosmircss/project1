@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Feature Complete
 status: unknown
-last_updated: "2026-03-05T12:53:49.246Z"
+last_updated: "2026-03-05T12:58:00.041Z"
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 4 of 6 (Hourly Forecast Auto-Refresh) — IN PROGRESS
-Plan: 1 of 4 complete (04-01 data layer and visibility IPC)
-Status: Phase 04-hourly-forecast-auto-refresh started — HOUR-01 and HOUR-02 requirements complete
-Last activity: 2026-03-05 — Completed 04-01 (Open-Meteo hourly data + window visibility IPC)
+Plan: 2 of 4 complete (04-02 useInterval + useWeather hook refactor)
+Status: Phase 04-hourly-forecast-auto-refresh — hook layer complete (HOUR-02, HOUR-03, REFR-01, REFR-02, REFR-03)
+Last activity: 2026-03-05 — Completed 04-02 (useInterval hook + useWeather auto-refresh refactor)
 
 Progress: [████░░░░░░] 50% (v1.1 phases)
 
@@ -47,6 +47,7 @@ Progress: [████░░░░░░] 50% (v1.1 phases)
 
 *Updated after each plan completion*
 | 04-hourly-forecast-auto-refresh | 04-01 | 1min | 2 | 5 |
+| 04-hourly-forecast-auto-refresh | 04-02 | 1min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -67,6 +68,11 @@ Key patterns carried forward:
 - [Phase 03-location-persistence]: Empty-all-locations state shows sidebar with 'No locations saved' NOT WelcomeScreen
 - [Phase 04-hourly-forecast-auto-refresh]: hourly required on OpenMeteoResult (optional only on WeatherData for backward compat); blur treated as not-visible for refresh pause; forecast_hours=24 independent of forecast_days=1
 
+**04-02 decisions:**
+- [Phase 04-hourly-forecast-auto-refresh]: autoRefreshCallback uses locationRef/settingsRef (refs not state) for stable closure — avoids restarting interval while always calling latest values
+- [Phase 04-hourly-forecast-auto-refresh]: retryDelayRef overrides intervalMs for useInterval delay after failed refresh — simpler than separate retry state machine
+- [Phase 04-hourly-forecast-auto-refresh]: performFetch uses fetchWithRetry (initial load), autoRefreshCallback single-attempts — different retry strategies for different contexts
+
 ### Pending Todos
 
 None.
@@ -80,5 +86,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Completed 04-01-PLAN.md — data layer and visibility IPC foundation complete. Ready for Plan 02 (useWeather auto-refresh hook).
+Stopped at: Completed 04-02-PLAN.md — useInterval hook and useWeather auto-refresh refactor complete. Ready for Plan 03 (hourly forecast UI component).
 Resume file: None
