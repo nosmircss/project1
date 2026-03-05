@@ -55,7 +55,12 @@ Plans:
   2. When the user switches to a different saved location, the hourly forecast updates immediately to reflect the new location's data
   3. Weather data refreshes automatically at the configured interval (default 5 minutes) without any user action — the displayed conditions visibly update when a refresh completes
   4. The app shows the time of the last successful data refresh and a live countdown to the next refresh, both visible at all times
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 04-01-PLAN.md — API extension (hourly params + visibility IPC bridge)
+- [ ] 04-02-PLAN.md — useInterval hook + useWeather refactor (auto-refresh, hourly slicing, per-location cache)
+- [ ] 04-03-PLAN.md — UI components (HourlyStrip, RefreshIndicator, SkeletonLoader, SettingsModal dropdown)
+- [ ] 04-04-PLAN.md — Integration (WeatherPanel + App.tsx wiring) + human verification
 
 ### Phase 5: Visual Polish
 **Goal**: The app delivers an immersive sci-fi experience — animated weather particles match current conditions, and switching locations produces a smooth visual transition rather than an abrupt content swap
@@ -85,6 +90,6 @@ Phases execute in numeric order: 3 → 4 → 5 → 6
 | 1. Foundation | v1.0 | 3/3 | Complete | 2026-03-01 |
 | 2. Full Conditions + Settings | v1.0 | 3/3 | Complete | 2026-03-01 |
 | 3. Location Persistence | v1.1 | 2/2 | Complete | 2026-03-02 |
-| 4. Hourly Forecast + Auto-Refresh | v1.1 | 0/TBD | Not started | - |
+| 4. Hourly Forecast + Auto-Refresh | v1.1 | 0/4 | Planned | - |
 | 5. Visual Polish | v1.1 | 0/TBD | Not started | - |
 | 6. Windows Installer | v1.1 | 0/TBD | Not started | - |
