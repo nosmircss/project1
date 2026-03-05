@@ -15,8 +15,8 @@ Requirements for the v1.1 Feature Complete milestone. Each maps to roadmap phase
 
 ### Hourly Forecast
 
-- [ ] **HOUR-01**: User can view a scrollable hourly forecast showing temperature, weather condition icon, and precipitation probability for each of the next 12-24 hours
-- [ ] **HOUR-02**: Hourly forecast starts from the current hour and shows only future hours (not past hours from midnight)
+- [x] **HOUR-01**: User can view a scrollable hourly forecast showing temperature, weather condition icon, and precipitation probability for each of the next 12-24 hours
+- [x] **HOUR-02**: Hourly forecast starts from the current hour and shows only future hours (not past hours from midnight)
 - [ ] **HOUR-03**: Hourly forecast updates immediately when the active location changes
 
 ### Locations
@@ -78,8 +78,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REFR-01 | Phase 4 | Pending |
 | REFR-02 | Phase 4 | Pending |
 | REFR-03 | Phase 4 | Pending |
-| HOUR-01 | Phase 4 | Pending |
-| HOUR-02 | Phase 4 | Pending |
+| HOUR-01 | Phase 4 | Complete |
+| HOUR-02 | Phase 4 | Complete |
 | HOUR-03 | Phase 4 | Pending |
 | LOC-01 | Phase 3 | Complete |
 | LOC-02 | Phase 3 | Complete |
