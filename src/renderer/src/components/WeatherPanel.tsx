@@ -3,17 +3,24 @@ import { Settings } from 'lucide-react'
 import { getWeatherDisplay } from '../lib/weatherCodeMap'
 import { WeatherIcon } from './WeatherIcon'
 import { TemperatureHero } from './TemperatureHero'
-import { WeatherSkeleton, ConditionCardSkeleton } from './SkeletonLoader'
+import { WeatherSkeleton, ConditionCardSkeleton, HourlyStripSkeleton } from './SkeletonLoader'
 import { ErrorCard } from './ErrorCard'
 import { ConditionsGrid } from './ConditionsGrid'
 import { SettingsModal } from './SettingsModal'
-import type { WeatherData, AppSettings } from '../lib/types'
+import { HourlyStrip } from './HourlyStrip'
+import { RefreshIndicator } from './RefreshIndicator'
+import type { WeatherData, AppSettings, HourlySlice } from '../lib/types'
 
 interface WeatherPanelProps {
   loading: boolean
   weather: WeatherData | null
+  hourly: HourlySlice[]           // NEW — from useWeather
+  isRefreshing: boolean           // NEW — true during silent background refresh
+  lastUpdatedAt: Date | null      // NEW — timestamp of last successful fetch
+  nextRefreshAt: number | null    // NEW — Date.now() ms target for next refresh
   error: string | null
   locationName: string
+  activeZip: string               // NEW — for HourlyStrip scroll reset on location change
   refetch: () => void
   settings: AppSettings
   onSettingsChange: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => Promise<void>
@@ -23,12 +30,21 @@ interface WeatherPanelProps {
  * Main weather display area — orchestrates sub-components based on loading/error/data state.
  * Per user decision on stale data: show weather + "Data may be outdated" warning if error + weather.
  * Gear icon appears in all states (loading, error, data) so settings are always accessible.
+ *
+ * loading=true only when weather === null (initial load for a location) — shows skeleton.
+ * isRefreshing=true during background auto-refresh — data updates silently, no skeleton.
+ * RefreshIndicator only shown in the weather-data branch (meaningless during loading/error-only).
  */
 export function WeatherPanel({
   loading,
   weather,
+  hourly,
+  isRefreshing,
+  lastUpdatedAt,
+  nextRefreshAt,
   error,
   locationName,
+  activeZip,
   refetch,
   settings,
   onSettingsChange
@@ -54,6 +70,7 @@ export function WeatherPanel({
         </div>
         <div className="flex flex-col items-center justify-center flex-1 gap-8 px-4 pb-6">
           <WeatherSkeleton />
+          <HourlyStripSkeleton />
           <ConditionCardSkeleton />
         </div>
         {showSettings && (
@@ -95,18 +112,25 @@ export function WeatherPanel({
 
     return (
       <main className="flex-1 flex flex-col bg-bg-panel overflow-y-auto">
-        {/* Header: location name + gear icon */}
+        {/* Header: location name + RefreshIndicator + gear icon */}
         <div className="flex items-center justify-between px-6 pt-5 pb-2">
           <span className="text-text-secondary font-sans text-sm tracking-wide uppercase">
             {locationName}
           </span>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="text-text-dim hover:text-neon-cyan transition-colors"
-            aria-label="Open settings"
-          >
-            <Settings size={18} />
-          </button>
+          <div className="flex items-center gap-3">
+            <RefreshIndicator
+              lastUpdatedAt={lastUpdatedAt}
+              nextRefreshAt={nextRefreshAt}
+              isRefreshing={isRefreshing}
+            />
+            <button
+              onClick={() => setShowSettings(true)}
+              className="text-text-dim hover:text-neon-cyan transition-colors"
+              aria-label="Open settings"
+            >
+              <Settings size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Hero section */}
@@ -124,6 +148,15 @@ export function WeatherPanel({
             <p className="text-warning text-sm font-mono">Data may be outdated</p>
           )}
         </div>
+
+        {/* Hourly forecast strip — between hero section and conditions grid */}
+        {hourly.length > 0 && (
+          <HourlyStrip
+            hours={hourly}
+            locationZip={activeZip}
+            temperatureUnit={weather.units.temperature}
+          />
+        )}
 
         {/* Conditions grid — 6 metric cards */}
         <ConditionsGrid weather={weather} />

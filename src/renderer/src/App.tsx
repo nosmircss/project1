@@ -32,7 +32,7 @@ function App(): React.JSX.Element {
   const activeLocation = locations.find((l) => l.zip === activeZip) ?? locations[0] ?? null
 
   // Gate on both loaded flags — prevents double-fetch race condition (per RESEARCH.md Pitfall 3)
-  const { weather, loading, error, refetch } = useWeather(
+  const { weather, hourly, loading, isRefreshing, error, lastUpdatedAt, nextRefreshAt, refetch } = useWeather(
     settingsLoaded && locationsLoaded ? activeLocation : null,
     settings
   )
@@ -95,8 +95,13 @@ function App(): React.JSX.Element {
       <WeatherPanel
         loading={loading}
         weather={weather}
+        hourly={hourly}
+        isRefreshing={isRefreshing}
+        lastUpdatedAt={lastUpdatedAt}
+        nextRefreshAt={nextRefreshAt}
         error={error}
         locationName={activeLocation?.displayName ?? ''}
+        activeZip={activeZip ?? ''}
         refetch={refetch}
         settings={settings}
         onSettingsChange={updateSetting}
