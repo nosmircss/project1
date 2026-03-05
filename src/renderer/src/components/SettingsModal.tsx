@@ -38,14 +38,9 @@ interface SettingsModalProps {
   onClose: () => void
 }
 
-export function SettingsModal({ settings, onUpdate, onClose }: SettingsModalProps): React.JSX.Element {
-  const handleRefreshChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = parseInt(e.target.value, 10)
-    // Clamp to 1-60 minutes — prevent nonsensical values
-    const clamped = Math.max(1, Math.min(60, isNaN(raw) ? 5 : raw))
-    onUpdate('refreshInterval', clamped)
-  }
+const REFRESH_OPTIONS = [1, 5, 10, 15, 30]
 
+export function SettingsModal({ settings, onUpdate, onClose }: SettingsModalProps): React.JSX.Element {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
       <div
@@ -89,22 +84,20 @@ export function SettingsModal({ settings, onUpdate, onClose }: SettingsModalProp
             <label className="text-text-secondary font-mono text-sm">
               Auto-refresh interval
             </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min={1}
-                max={60}
-                value={settings.refreshInterval}
-                onChange={handleRefreshChange}
-                className="
-                  w-20 bg-bg-dark border border-neon-cyan/30 rounded px-3 py-1
-                  font-mono text-sm text-text-primary
-                  focus:outline-none focus:border-neon-cyan/60 focus:shadow-[0_0_8px_rgba(0,240,255,0.2)]
-                "
-              />
-              <span className="text-text-dim font-mono text-sm">minutes</span>
-            </div>
-            <p className="text-text-dim font-mono text-xs">Range: 1–60 minutes</p>
+            <select
+              value={settings.refreshInterval}
+              onChange={(e) => onUpdate('refreshInterval', Number(e.target.value))}
+              className="
+                bg-bg-dark border border-neon-cyan/30 rounded px-3 py-1.5
+                font-mono text-sm text-text-primary
+                focus:outline-none focus:border-neon-cyan/60 focus:shadow-[0_0_8px_rgba(0,240,255,0.2)]
+                appearance-none cursor-pointer
+              "
+            >
+              {REFRESH_OPTIONS.map(n => (
+                <option key={n} value={n}>{n} min</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
