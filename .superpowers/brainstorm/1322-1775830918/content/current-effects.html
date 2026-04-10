@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WeatherDeck Particle Effects — Current vs Proposed</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a12;
+    color: #e0e0ff;
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 24px;
+  }
+  h1 { color: #00f0ff; font-size: 22px; margin-bottom: 6px; }
+  .subtitle { color: #8888aa; font-size: 14px; margin-bottom: 28px; }
+  h2 { color: #00f0ff; font-size: 16px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+  .effect-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+    align-items: stretch;
+  }
+  .effect-card {
+    flex: 1;
+    background: #12122a;
+    border: 1px solid #00f0ff30;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .effect-card.proposed {
+    border-color: #00f0ff60;
+    box-shadow: 0 0 12px #00f0ff20;
+  }
+  .effect-label {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8888aa;
+    z-index: 5;
+    background: #12122aCC;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .effect-card.proposed .effect-label { color: #00f0ff; }
+  canvas {
+    width: 100%;
+    height: 180px;
+    display: block;
+  }
+  .effect-info {
+    padding: 10px 12px;
+    border-top: 1px solid #00f0ff15;
+  }
+  .effect-info h3 { font-size: 13px; color: #e0e0ff; margin-bottom: 4px; }
+  .effect-info p { font-size: 11px; color: #8888aa; line-height: 1.4; }
+  .effect-info .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-top: 6px;
+    margin-right: 4px;
+  }
+  .tag.same { background: #333355; color: #8888aa; }
+  .tag.new { background: #00f0ff20; color: #00f0ff; }
+  .section { margin-bottom: 32px; }
+  .divider { border: none; border-top: 1px solid #00f0ff15; margin: 32px 0; }
+  .note {
+    background: #00f0ff10;
+    border-left: 3px solid #00f0ff40;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #8888aa;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 24px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Particle Effects Review</h1>
+<p class="subtitle">Current implementation vs. proposed improvements — live canvas demos</p>
+
+<div class="note">
+  Each pair shows the <strong>current</strong> effect on the left and a <strong>proposed</strong> improvement on the right.
+  Focus on: visual differentiation between light/heavy, realism, and atmosphere.
+</div>
+
+<!-- RAIN SECTION -->
+<div class="section">
+  <h2>Rain — Light vs Heavy</h2>
+  <div class="effect-row">
+    <div class="effect-card">
+      <span class="effect-label">Current — Light</span>
+      <canvas id="rain-light-current"></canvas>
+      <div class="effect-info">
+        <h3>Rain Light (current)</h3>
+        <p>Uniform diagonal streaks. Same visual as heavy — just fewer, slower.</p>
+        <span class="tag same">identical style</span>
+        <span class="tag same">fixed angle</span>
+      </div>
+    </div>
+    <div class="effect-card proposed">
+      <span class="effect-label">Proposed — Light</span>
+      <canvas id="rain-light-proposed"></canvas>
+      <div class="effect-info">
+        <h3>Rain Light (proposed)</h3>
+        <p>Thinner streaks, varied lengths, subtle opacity variation. Gentle feel.</p>
+        <span class="tag new">variable length</span>
+        <span class="tag new">opacity spread</span>
+      </div>
+    </div>
+  </div>
+  <div class="effect-row">
+    <div class="effect-card">
+      <span class="effect-label">Current — Heavy</span>
+      <canvas id="rain-heavy-current"></canvas>
+      <div class="effect-info">
+        <h3>Rain Heavy (current)</h3>
+        <p>Same streaks as light, just faster and more numerous.</p>
+        <span class="tag same">identical style</span>
+        <span class="tag same">no splash</span>
+      </div>
+    </div>
+    <div class="effect-card proposed">
+      <span class="effect-label">Proposed — Heavy</span>
+      <canvas id="rain-heavy-proposed"></canvas>
+      <div class="effect-info">
+        <h3>Rain Heavy (proposed)</h3>
+        <p>Thicker, longer streaks with splash particles at bottom. Wind variation. Clearly different intensity.</p>
+        <span class="tag new">splash on impact</span>
+        <span class="tag new">thicker streaks</span>
+        <span class="tag new">wind sway</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- DRIZZLE SECTION -->
+<div class="section">
+  <h2>Drizzle</h2>
+  <div class="effect-row">
+    <div class="effect-card">
+      <span class="effect-label">Current</span>
+      <canvas id="drizzle-current"></canvas>
+      <div class="effect-info">
+        <h3>Drizzle (current)</h3>
+        <p>Thin diagonal streaks — almost identical to rain-light, hard to distinguish.</p>
+        <span class="tag same">same as rain</span>
+      </div>
+    </div>
+    <div class="effect-card proposed">
+      <span class="effect-label">Proposed</span>
+      <canvas id="drizzle-proposed"></canvas>
+      <div class="effect-info">
+        <h3>Drizzle (proposed)</h3>
+        <p>Short, near-vertical dashes that drift. More like mist falling than rain. Clearly lighter than rain.</p>
+        <span class="tag new">short dashes</span>
+        <span class="tag new">near-vertical</span>
+        <span class="tag new">gentle drift</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- SNOW SECTION -->
+<div class="section">
+  <h2>Snow — Light vs Heavy</h2>
+  <div class="effect-row">
+    <div class="effect-card">
+      <span class="effect-label">Current — Light</span>
+      <canvas id="snow-light-current"></canvas>
+      <div class="effect-info">
+        <h3>Snow Light (current)</h3>
+        <p>Plain filled circles. Same shape as heavy — just smaller.</p>
+        <span class="tag same">plain circles</span>
+      </div>
+    </div>
+    <div class="effect-card proposed">
+      <span class="effect-label">Proposed — Light</span>
+      <canvas id="snow-light-proposed"></canvas>
+      <div class="effect-info">
+        <h3>Snow Light (proposed)</h3>
+        <p>Small soft dots with gentle wobble and fade. Delicate, airy feel.</p>
+        <span class="tag new">soft glow</span>
+        <span class="tag new">slow wobble</span>
+      </div>
+    </div>
+  </div>
+  <div class="effect-row">
+    <div class="effect-card">
+      <span class="effect-label">Current — Heavy</span>
+      <canvas id="snow-heavy-current"></canvas>
+      <div class="effect-info">
+        <h3>Snow Heavy (current)</h3>
+        <p>Slightly larger plain circles. Not visually distinct from light.</p>
+        <span class="tag same">same shape</span>
+      </div>
+    </div>
+    <div class="effect-card proposed">
+      <span class="effect-label">Proposed — Heavy</span>
+      <canvas id="snow-heavy-proposed"></canvas>
+      <div class="effect-info">
+        <h3>Snow Heavy (proposed)</h3>
+        <p>Larger, varied flakes with radial glow. Wider wobble and rotation feel. Dense blizzard atmosphere.</p>
+        <span class="tag new">larger flakes</span>
+        <span class="tag new">radial glow</span>
+        <span class="tag new">dense</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- FOG SECTION -->
+<div class="section">
+  <h2>Fog</h2>
+  <div class="effect-row">
+    <div class="effect-card">
+      <span class="effect-label">Current</span>
+      <canvas id="fog-current"></canvas>
+      <div class="effect-info">
+        <h3>Fog (current)</h3>
+        <p>Flat rectangles sliding left-to-right. Looks mechanical, not atmospheric.</p>
+        <span class="tag same">flat rectangles</span>
+        <span class="tag same">uniform</span>
+      </div>
+    </div>
+    <div class="effect-card proposed">
+      <span class="effect-label">Proposed</span>
+      <canvas id="fog-proposed"></canvas>
+      <div class="effect-info">
+        <h3>Fog (proposed)</h3>
+        <p>Layered soft radial gradient blobs at multiple speeds. Organic, atmospheric drifting clouds of mist.</p>
+        <span class="tag new">radial blobs</span>
+        <span class="tag new">layered depth</span>
+        <span class="tag new">organic drift</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- AMBIENT SECTION -->
+<div class="section">
+  <h2>Ambient (Clear / Partly Cloudy)</h2>
+  <div class="effect-row">
+    <div class="effect-card">
+      <span class="effect-label">Current — Day</span>
+      <canvas id="ambient-day-current"></canvas>
+      <div class="effect-info">
+        <h3>Ambient Day (current)</h3>
+        <p>Small golden dots drifting randomly.</p>
+        <span class="tag same">plain dots</span>
+      </div>
+    </div>
+    <div class="effect-card proposed">
+      <span class="effect-label">Proposed — Day</span>
+      <canvas id="ambient-day-proposed"></canvas>
+      <div class="effect-info">
+        <h3>Ambient Day (proposed)</h3>
+        <p>Golden motes with pulsing glow and gentle upward float. Warm, sun-kissed dust feel.</p>
+        <span class="tag new">pulse glow</span>
+        <span class="tag new">upward float</span>
+      </div>
+    </div>
+  </div>
+  <div class="effect-row">
+    <div class="effect-card">
+      <span class="effect-label">Current — Night</span>
+      <canvas id="ambient-night-current"></canvas>
+      <div class="effect-info">
+        <h3>Ambient Night (current)</h3>
+        <p>Same as day but blue-white dots.</p>
+        <span class="tag same">same as day</span>
+      </div>
+    </div>
+    <div class="effect-card proposed">
+      <span class="effect-label">Proposed — Night</span>
+      <canvas id="ambient-night-proposed"></canvas>
+      <div class="effect-info">
+        <h3>Ambient Night (proposed)</h3>
+        <p>Twinkling star-like motes with slow brightness oscillation. Calm, celestial feel.</p>
+        <span class="tag new">twinkle</span>
+        <span class="tag new">brightness pulse</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Helper: setup HiDPI canvas
+function setupCanvas(id) {
+  const canvas = document.getElementById(id);
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return { canvas, ctx, w: rect.width, h: rect.height };
+}
+
+const CYAN = '#00f0ff';
+const GOLD = '#ffaa00';
+const BLUEWHITE = '#e0e0ff';
+const WHITE = '#ffffff';
+
+// ============== CURRENT EFFECTS (reproducing what exists) ==============
+
+function currentRain(id, count, speed) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: count }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    vx: speed * 0.15, vy: speed,
+    opacity: 0.7 + Math.random() * 0.3
+  }));
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.y > h + 10) { p.y = -10; p.x = Math.random() * w; }
+      if (p.x > w + 10) p.x = -10;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + p.vx * 3, p.y + p.vy * 3);
+      ctx.strokeStyle = CYAN;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = p.opacity;
+      ctx.shadowColor = CYAN;
+      ctx.shadowBlur = 5;
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function currentDrizzle(id) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: 30 }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    vx: 0.2, vy: 2 + Math.random(),
+    opacity: 0.5 + Math.random() * 0.3
+  }));
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.y > h + 10) { p.y = -10; p.x = Math.random() * w; }
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + p.vx * 3, p.y + p.vy * 3);
+      ctx.strokeStyle = CYAN;
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = p.opacity;
+      ctx.shadowColor = CYAN;
+      ctx.shadowBlur = 4;
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function currentSnow(id, count, vy, sizeBase, sizeRange, color) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: count }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    vy, size: sizeBase + Math.random() * sizeRange,
+    opacity: 0.6 + Math.random() * 0.4,
+    life: Math.random() * 1000
+  }));
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.life += 1;
+      p.x += Math.sin(p.life * 0.05) * 0.5;
+      p.y += p.vy;
+      if (p.y > h + 10) { p.y = -10; p.x = Math.random() * w; p.life = Math.random() * 1000; }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.globalAlpha = p.opacity;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 4;
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function currentFog(id) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: 10 }, () => ({
+    x: -w * 0.4, y: Math.random() * h,
+    vx: 0.2, opacity: 0.06 + Math.random() * 0.02
+  }));
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.x += p.vx;
+      if (p.x > w) { p.x = -w * 0.4; p.y = Math.random() * h; }
+      ctx.fillStyle = CYAN;
+      ctx.globalAlpha = p.opacity;
+      ctx.fillRect(p.x, p.y, w * 0.4, 3);
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function currentAmbient(id, color, count, speed, alphaMul) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: count }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    vx: (Math.random() - 0.5) * speed, vy: (Math.random() - 0.5) * speed,
+    size: 1 + Math.random() * 1.5,
+    opacity: 0.3 + Math.random() * 0.4,
+    life: 60 + Math.floor(Math.random() * 120)
+  }));
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy; p.life -= 1;
+      if (p.life < 30) p.opacity = Math.max(0, p.opacity - 0.01);
+      if (p.life <= 0 || p.x < 0 || p.x > w || p.y < 0 || p.y > h) {
+        p.x = Math.random() * w; p.y = Math.random() * h;
+        p.vx = (Math.random() - 0.5) * speed; p.vy = (Math.random() - 0.5) * speed;
+        p.opacity = 0.3 + Math.random() * 0.4;
+        p.life = 60 + Math.floor(Math.random() * 120);
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.globalAlpha = p.opacity * alphaMul;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 3;
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+// ============== PROPOSED EFFECTS ==============
+
+function proposedRainLight(id) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: 40 }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    speed: 3 + Math.random() * 2,
+    length: 8 + Math.random() * 12,
+    opacity: 0.4 + Math.random() * 0.4,
+    width: 0.8 + Math.random() * 0.5
+  }));
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.y += p.speed;
+      p.x += 0.4;
+      if (p.y > h + 10) {
+        p.y = -10; p.x = Math.random() * w;
+        p.length = 8 + Math.random() * 12;
+        p.opacity = 0.4 + Math.random() * 0.4;
+      }
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + 0.8, p.y + p.length);
+      ctx.strokeStyle = CYAN;
+      ctx.lineWidth = p.width;
+      ctx.globalAlpha = p.opacity;
+      ctx.shadowColor = CYAN;
+      ctx.shadowBlur = 3;
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function proposedRainHeavy(id) {
+  const { ctx, w, h } = setupCanvas(id);
+  let drops = Array.from({ length: 80 }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    speed: 6 + Math.random() * 3,
+    length: 16 + Math.random() * 14,
+    opacity: 0.5 + Math.random() * 0.5,
+    width: 1.2 + Math.random() * 1
+  }));
+  let splashes = [];
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    // Draw drops
+    for (const p of drops) {
+      p.y += p.speed;
+      p.x += 1.5 + Math.sin(Date.now() * 0.001) * 0.3; // wind sway
+      if (p.y > h - 4) {
+        // spawn splash
+        splashes.push({ x: p.x, y: h - 2, life: 6, spread: 2 + Math.random() * 3 });
+        p.y = -10; p.x = Math.random() * w;
+        p.speed = 6 + Math.random() * 3;
+        p.length = 16 + Math.random() * 14;
+      }
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + 2, p.y + p.length);
+      ctx.strokeStyle = CYAN;
+      ctx.lineWidth = p.width;
+      ctx.globalAlpha = p.opacity;
+      ctx.shadowColor = CYAN;
+      ctx.shadowBlur = 5;
+      ctx.stroke();
+    }
+    // Draw splashes
+    for (let i = splashes.length - 1; i >= 0; i--) {
+      const s = splashes[i];
+      const progress = 1 - s.life / 6;
+      ctx.globalAlpha = (1 - progress) * 0.6;
+      // two tiny arcs spreading outward
+      ctx.beginPath();
+      ctx.arc(s.x - s.spread * progress * 3, s.y - progress * 4, 1, 0, Math.PI * 2);
+      ctx.fillStyle = CYAN;
+      ctx.shadowColor = CYAN;
+      ctx.shadowBlur = 3;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(s.x + s.spread * progress * 3, s.y - progress * 4, 1, 0, Math.PI * 2);
+      ctx.fill();
+      s.life -= 0.15;
+      if (s.life <= 0) splashes.splice(i, 1);
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function proposedDrizzle(id) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: 25 }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    speed: 1.2 + Math.random() * 1,
+    length: 3 + Math.random() * 4,
+    opacity: 0.3 + Math.random() * 0.3,
+    drift: (Math.random() - 0.5) * 0.3
+  }));
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.y += p.speed;
+      p.x += p.drift;
+      if (p.y > h + 5) {
+        p.y = -5; p.x = Math.random() * w;
+        p.drift = (Math.random() - 0.5) * 0.3;
+      }
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + p.drift * 2, p.y + p.length);
+      ctx.strokeStyle = CYAN;
+      ctx.lineWidth = 0.7;
+      ctx.globalAlpha = p.opacity;
+      ctx.shadowColor = CYAN;
+      ctx.shadowBlur = 2;
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function proposedSnowLight(id) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: 35 }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    vy: 0.4 + Math.random() * 0.4,
+    size: 1 + Math.random() * 1.5,
+    opacity: 0.4 + Math.random() * 0.3,
+    life: Math.random() * 1000,
+    pulsePhase: Math.random() * Math.PI * 2
+  }));
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.life += 1;
+      p.x += Math.sin(p.life * 0.03) * 0.4;
+      p.y += p.vy;
+      if (p.y > h + 10) { p.y = -10; p.x = Math.random() * w; p.life = Math.random() * 1000; }
+      const pulse = 0.8 + Math.sin(p.life * 0.04 + p.pulsePhase) * 0.2;
+      // Soft glow dot
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2.5);
+      grad.addColorStop(0, BLUEWHITE);
+      grad.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.globalAlpha = p.opacity * pulse * 0.4;
+      ctx.fill();
+      // Core dot
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = BLUEWHITE;
+      ctx.globalAlpha = p.opacity * pulse;
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function proposedSnowHeavy(id) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: 65 }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    vy: 0.8 + Math.random() * 0.8,
+    size: 2 + Math.random() * 3,
+    opacity: 0.5 + Math.random() * 0.4,
+    life: Math.random() * 1000,
+    wobbleAmp: 0.5 + Math.random() * 1
+  }));
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.life += 1;
+      p.x += Math.sin(p.life * 0.025) * p.wobbleAmp;
+      p.y += p.vy;
+      if (p.y > h + 10) { p.y = -10; p.x = Math.random() * w; p.life = Math.random() * 1000; }
+      // Larger radial glow
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
+      grad.addColorStop(0, 'rgba(255,255,255,0.8)');
+      grad.addColorStop(0.4, 'rgba(224,224,255,0.3)');
+      grad.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.globalAlpha = p.opacity * 0.5;
+      ctx.fill();
+      // Core
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = WHITE;
+      ctx.globalAlpha = p.opacity;
+      ctx.shadowColor = WHITE;
+      ctx.shadowBlur = 6;
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function proposedFog(id) {
+  const { ctx, w, h } = setupCanvas(id);
+  let blobs = Array.from({ length: 8 }, (_, i) => ({
+    x: Math.random() * w * 1.5 - w * 0.25,
+    y: h * 0.2 + Math.random() * h * 0.6,
+    radius: w * 0.15 + Math.random() * w * 0.2,
+    speed: 0.1 + Math.random() * 0.2,
+    opacity: 0.03 + Math.random() * 0.03,
+    yDrift: (Math.random() - 0.5) * 0.05,
+    phase: Math.random() * Math.PI * 2
+  }));
+  (function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (const b of blobs) {
+      b.x += b.speed;
+      b.y += Math.sin(Date.now() * 0.0005 + b.phase) * 0.15;
+      if (b.x - b.radius > w) {
+        b.x = -b.radius;
+        b.y = h * 0.2 + Math.random() * h * 0.6;
+      }
+      const grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.radius);
+      grad.addColorStop(0, CYAN);
+      grad.addColorStop(0.5, CYAN);
+      grad.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.globalAlpha = b.opacity;
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function proposedAmbientDay(id) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: 18 }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    vx: (Math.random() - 0.5) * 0.2,
+    vy: -0.1 - Math.random() * 0.15, // gentle upward
+    size: 1 + Math.random() * 1.5,
+    opacity: 0.3 + Math.random() * 0.4,
+    life: 80 + Math.floor(Math.random() * 160),
+    pulsePhase: Math.random() * Math.PI * 2
+  }));
+  let frame = 0;
+  (function tick() {
+    frame++;
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy; p.life -= 1;
+      const pulse = 0.7 + Math.sin(frame * 0.03 + p.pulsePhase) * 0.3;
+      if (p.life < 30) p.opacity = Math.max(0, p.opacity - 0.012);
+      if (p.life <= 0 || p.x < 0 || p.x > w || p.y < 0 || p.y > h) {
+        p.x = Math.random() * w; p.y = h * 0.3 + Math.random() * h * 0.7;
+        p.vx = (Math.random() - 0.5) * 0.2; p.vy = -0.1 - Math.random() * 0.15;
+        p.opacity = 0.3 + Math.random() * 0.4;
+        p.life = 80 + Math.floor(Math.random() * 160);
+      }
+      // Warm glow halo
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
+      grad.addColorStop(0, GOLD);
+      grad.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.globalAlpha = p.opacity * pulse * 0.3;
+      ctx.fill();
+      // Core
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = GOLD;
+      ctx.globalAlpha = p.opacity * pulse * 0.5;
+      ctx.shadowColor = GOLD;
+      ctx.shadowBlur = 4;
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+function proposedAmbientNight(id) {
+  const { ctx, w, h } = setupCanvas(id);
+  let particles = Array.from({ length: 25 }, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    vx: (Math.random() - 0.5) * 0.08,
+    vy: (Math.random() - 0.5) * 0.08,
+    size: 0.8 + Math.random() * 1.2,
+    baseOpacity: 0.2 + Math.random() * 0.5,
+    life: 100 + Math.floor(Math.random() * 200),
+    twinkleSpeed: 0.02 + Math.random() * 0.04,
+    twinklePhase: Math.random() * Math.PI * 2
+  }));
+  let frame = 0;
+  (function tick() {
+    frame++;
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy; p.life -= 1;
+      // Twinkle: oscillate between dim and bright
+      const twinkle = 0.3 + Math.pow(Math.sin(frame * p.twinkleSpeed + p.twinklePhase), 2) * 0.7;
+      let alpha = p.baseOpacity * twinkle;
+      if (p.life < 30) alpha *= p.life / 30;
+      if (p.life <= 0 || p.x < 0 || p.x > w || p.y < 0 || p.y > h) {
+        p.x = Math.random() * w; p.y = Math.random() * h;
+        p.vx = (Math.random() - 0.5) * 0.08; p.vy = (Math.random() - 0.5) * 0.08;
+        p.baseOpacity = 0.2 + Math.random() * 0.5;
+        p.life = 100 + Math.floor(Math.random() * 200);
+      }
+      // Soft glow
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
+      grad.addColorStop(0, BLUEWHITE);
+      grad.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.globalAlpha = alpha * 0.3;
+      ctx.fill();
+      // Core with cross-flare at peak brightness
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = BLUEWHITE;
+      ctx.globalAlpha = alpha;
+      ctx.fill();
+      // Small cross-flare when bright
+      if (twinkle > 0.7) {
+        ctx.globalAlpha = (twinkle - 0.7) * alpha * 1.5;
+        ctx.strokeStyle = BLUEWHITE;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(p.x - p.size * 2.5, p.y);
+        ctx.lineTo(p.x + p.size * 2.5, p.y);
+        ctx.moveTo(p.x, p.y - p.size * 2.5);
+        ctx.lineTo(p.x, p.y + p.size * 2.5);
+        ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })();
+}
+
+// ============== INIT ALL ==============
+window.addEventListener('load', () => {
+  // Current
+  currentRain('rain-light-current', 35, 4);
+  currentRain('rain-heavy-current', 70, 6);
+  currentDrizzle('drizzle-current');
+  currentSnow('snow-light-current', 30, 0.8, 1.5, 1.5, BLUEWHITE);
+  currentSnow('snow-heavy-current', 55, 1.2, 2, 2, WHITE);
+  currentFog('fog-current');
+  currentAmbient('ambient-day-current', GOLD, 15, 0.3, 0.4);
+  currentAmbient('ambient-night-current', BLUEWHITE, 20, 0.1, 0.3);
+  // Proposed
+  proposedRainLight('rain-light-proposed');
+  proposedRainHeavy('rain-heavy-proposed');
+  proposedDrizzle('drizzle-proposed');
+  proposedSnowLight('snow-light-proposed');
+  proposedSnowHeavy('snow-heavy-proposed');
+  proposedFog('fog-proposed');
+  proposedAmbientDay('ambient-day-proposed');
+  proposedAmbientNight('ambient-night-proposed');
+});
+</script>
+</body>
+</html>
