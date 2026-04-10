@@ -10,10 +10,10 @@ import type { LocationInfo } from '../renderer/src/lib/types'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 900,
-    minWidth: 800,
-    minHeight: 800,
+    width: 966,
+    height: 897,
+    minWidth: 966,
+    minHeight: 897,
     resizable: true,
     show: false,
     autoHideMenuBar: true,
@@ -31,9 +31,17 @@ function createWindow(): void {
   Menu.setApplicationMenu(null)
 
   // Enforce minimum size programmatically (some Linux WMs ignore constructor options)
-  mainWindow.setMinimumSize(800, 800)
+  mainWindow.setMinimumSize(966, 897)
+
+  // Log window dimensions on resize for debugging
+  mainWindow.on('resize', () => {
+    const [w, h] = mainWindow.getSize()
+    console.log(`[window] ${w}x${h}`)
+  })
 
   mainWindow.on('ready-to-show', () => {
+    const [w, h] = mainWindow.getSize()
+    console.log(`[window] initial: ${w}x${h}`)
     mainWindow.show()
   })
 
