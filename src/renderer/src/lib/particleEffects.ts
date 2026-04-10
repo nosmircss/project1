@@ -142,7 +142,7 @@ export function createParticle(
       const speed = effect === 'rain-heavy' || effect === 'thunder' ? 6 : 4
       return {
         x: rand() * canvasW,
-        y: -10,
+        y: rand() * canvasH,
         vx: speed * 0.15,
         vy: speed,
         size: 1.5,
@@ -153,7 +153,7 @@ export function createParticle(
     case 'drizzle': {
       return {
         x: rand() * canvasW,
-        y: -10,
+        y: rand() * canvasH,
         vx: 2 * 0.1,
         vy: 2 + rand(),
         size: 1,
@@ -166,7 +166,7 @@ export function createParticle(
       const life = rand() * 1000
       return {
         x: rand() * canvasW,
-        y: -10,
+        y: rand() * canvasH,
         vx: 0,
         vy: effect === 'snow-heavy' ? 1.2 : 0.8,
         size: effect === 'snow-heavy' ? 2 + rand() * 2 : 1.5 + rand() * 1.5,
