@@ -379,7 +379,7 @@ export function updateParticle(
         p.x = -p.size
         p.y = canvasH * 0.2 + Math.random() * canvasH * 0.6
       }
-      if (p.x + p.size < -p.size) {
+      if (p.x + p.size < 0) {
         p.x = canvasW + p.size
         p.y = canvasH * 0.2 + Math.random() * canvasH * 0.6
       }
@@ -452,10 +452,9 @@ export function drawParticle(
 
   switch (effect) {
     case 'rain-light': {
-      const windVx = p.vx
       ctx.beginPath()
       ctx.moveTo(p.x, p.y)
-      ctx.lineTo(p.x + windVx * 2, p.y + p.length)
+      ctx.lineTo(p.x + p.vx * 2, p.y + p.length)
       ctx.strokeStyle = config.color
       ctx.lineWidth = p.width
       ctx.globalAlpha = p.opacity
@@ -467,10 +466,9 @@ export function drawParticle(
 
     case 'rain-heavy':
     case 'thunder': {
-      const windVx = p.vx
       ctx.beginPath()
       ctx.moveTo(p.x, p.y)
-      ctx.lineTo(p.x + windVx * 2, p.y + p.length)
+      ctx.lineTo(p.x + p.vx * 2, p.y + p.length)
       ctx.strokeStyle = config.color
       ctx.lineWidth = p.width
       ctx.globalAlpha = p.opacity
@@ -483,7 +481,8 @@ export function drawParticle(
         ctx.globalAlpha = (1 - progress) * 0.6
         ctx.shadowBlur = 3
         ctx.fillStyle = config.color
-        const spread = 2 + Math.random() * 3
+        // Deterministic spread derived from splashX to avoid per-frame jitter
+        const spread = 2 + (p.splashX % 5)
         ctx.beginPath()
         ctx.arc(p.splashX - spread * progress * 3, canvasH - 2 - progress * 4, 1, 0, Math.PI * 2)
         ctx.fill()
