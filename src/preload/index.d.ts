@@ -10,7 +10,11 @@ interface LocationData {
 }
 
 interface ElectronBridgeAPI {
-  fetchWeather: (lat: number, lon: number, settings?: { temperatureUnit: string; windSpeedUnit: string }) => Promise<import('../renderer/src/lib/types').WeatherData>
+  fetchWeather: (
+    lat: number,
+    lon: number,
+    settings?: { temperatureUnit: string; windSpeedUnit: string }
+  ) => Promise<import('../renderer/src/lib/types').WeatherData>
   getSetting: (key: string) => Promise<unknown>
   setSetting: (key: string, value: unknown) => Promise<void>
   getLocations: () => Promise<LocationData[]>

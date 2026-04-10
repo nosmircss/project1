@@ -11,9 +11,7 @@ function AppFrame({ children }: { children: React.ReactNode }): React.JSX.Elemen
   return (
     <div className="app-frame flex h-screen flex-col overflow-hidden bg-bg-dark">
       <TitleBar />
-      <div className="flex min-h-0 flex-1 bg-bg-dark cyber-grid overflow-hidden">
-        {children}
-      </div>
+      <div className="flex min-h-0 flex-1 bg-bg-dark cyber-grid overflow-hidden">{children}</div>
     </div>
   )
 }
@@ -44,17 +42,15 @@ function App(): React.JSX.Element {
   const activeLocation = locations.find((l) => l.zip === activeZip) ?? locations[0] ?? null
 
   // Gate on both loaded flags — prevents double-fetch race condition (per RESEARCH.md Pitfall 3)
-  const { weather, hourly, loading, isRefreshing, error, lastUpdatedAt, nextRefreshAt, refetch } = useWeather(
-    settingsLoaded && locationsLoaded ? activeLocation : null,
-    settings
-  )
+  const { weather, hourly, loading, isRefreshing, error, lastUpdatedAt, nextRefreshAt, refetch } =
+    useWeather(settingsLoaded && locationsLoaded ? activeLocation : null, settings)
 
-  const handleAdd = async (location: LocationInfo) => {
+  const handleAdd = async (location: LocationInfo): Promise<void> => {
     await addLocation(location)
     // addLocation already performs optimistic state updates
   }
 
-  const handleSelect = (index: number) => {
+  const handleSelect = (index: number): void => {
     const loc = locations[index]
     if (loc) setActiveZip(loc.zip)
   }

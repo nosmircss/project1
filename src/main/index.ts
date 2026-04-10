@@ -87,8 +87,22 @@ app.whenReady().then(() => {
   })
 
   // Updated weather:fetch — now accepts settings as 3rd arg
-  ipcMain.handle('weather:fetch', async (_event, lat: number, lon: number, settings?: { temperatureUnit: string; windSpeedUnit: string }) =>
-    fetchWeather(lat, lon, settings ?? { temperatureUnit: conf.get('temperatureUnit'), windSpeedUnit: conf.get('windSpeedUnit') })
+  ipcMain.handle(
+    'weather:fetch',
+    async (
+      _event,
+      lat: number,
+      lon: number,
+      settings?: { temperatureUnit: string; windSpeedUnit: string }
+    ) =>
+      fetchWeather(
+        lat,
+        lon,
+        settings ?? {
+          temperatureUnit: conf.get('temperatureUnit'),
+          windSpeedUnit: conf.get('windSpeedUnit')
+        }
+      )
   )
 
   // Settings IPC — uses main-process conf singleton directly
@@ -111,7 +125,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle('locations:delete', (_event, zip: string) => {
     const current = locationsConf.get('locations')
-    locationsConf.set('locations', current.filter((l) => l.zip !== zip))
+    locationsConf.set(
+      'locations',
+      current.filter((l) => l.zip !== zip)
+    )
   })
 
   ipcMain.handle('locations:set-active', (_event, zip: string | null) => {
