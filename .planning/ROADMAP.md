@@ -69,7 +69,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. The app displays animated weather particle effects (raindrops, snowflakes, fog wisps, etc.) that match the current weather condition for the active location, with no measurable CPU impact at idle on integrated graphics
   2. Switching between saved locations produces a smooth fade transition — no abrupt content flash, layout jump, or momentary display of the previous location's data under the new location's name
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 05-01-PLAN.md — Particle system engine (WMO-to-effect mapping, particle physics/draw logic, WeatherParticles canvas component)
+- [ ] 05-02-PLAN.md — WeatherPanel integration (canvas overlay mount, crossfade transition, visual verification)
 
 ### Phase 6: Windows Installer
 **Goal**: WeatherDeck ships as a self-contained NSIS `.exe` that any Windows 10/11 user can install from a clean machine — with the SmartScreen bypass process clearly documented
@@ -91,5 +94,5 @@ Phases execute in numeric order: 3 → 4 → 5 → 6
 | 2. Full Conditions + Settings | v1.0 | 3/3 | Complete | 2026-03-01 |
 | 3. Location Persistence | v1.1 | 2/2 | Complete | 2026-03-02 |
 | 4. Hourly Forecast + Auto-Refresh | v1.1 | 4/4 | Complete | 2026-03-05 |
-| 5. Visual Polish | v1.1 | 0/TBD | Not started | - |
+| 5. Visual Polish | v1.1 | 0/2 | Planned | - |
 | 6. Windows Installer | v1.1 | 0/TBD | Not started | - |
