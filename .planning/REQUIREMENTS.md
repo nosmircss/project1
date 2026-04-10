@@ -29,7 +29,7 @@ Requirements for the v1.1 Feature Complete milestone. Each maps to roadmap phase
 ### Visual Polish
 
 - [x] **VISL-01**: App displays animated weather particle effects (raindrops, snowflakes, fog, etc.) that match the current weather condition for the active location
-- [ ] **VISL-02**: Switching between saved locations produces a smooth visual transition — no abrupt content flash or layout jump
+- [x] **VISL-02**: Switching between saved locations produces a smooth visual transition — no abrupt content flash or layout jump
 
 ### Distribution
 
@@ -86,7 +86,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOC-03 | Phase 3 | Complete |
 | LOC-04 | Phase 3 | Complete |
 | VISL-01 | Phase 5 | Complete |
-| VISL-02 | Phase 5 | Pending |
+| VISL-02 | Phase 5 | Complete |
 | DIST-01 | Phase 6 | Pending |
 | DIST-02 | Phase 6 | Pending |
 

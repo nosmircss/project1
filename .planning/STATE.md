@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Feature Complete
-status: Ready to execute
-stopped_at: Completed 05-visual-polish 05-01-PLAN.md
-last_updated: "2026-04-10T13:45:32.775Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 05-visual-polish 05-02-PLAN.md (awaiting human-verify checkpoint)
+last_updated: "2026-04-10T13:49:15.240Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -49,6 +49,7 @@ Plan: 2 of 2
 | 04-hourly-forecast-auto-refresh | 04-02 | 1min | 2 | 2 |
 | 04-hourly-forecast-auto-refresh | 04-03 | 2min | 2 | 4 |
 | Phase 05-visual-polish P05-01 | 3min | 2 tasks | 3 files |
+| Phase 05-visual-polish P05-02 | 5min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,9 @@ Key patterns carried forward:
 - [Phase 05-visual-polish]: Particle pool initialized once and mutated in-place each frame to avoid GC pressure in RAF loop
 - [Phase 05-visual-polish]: getEffectConfig uses code <= N range comparisons matching weatherCodeMap.ts pattern for safe WMO gap code handling
 - [Phase 05-visual-polish]: WeatherParticles active=false path clears canvas and skips RAF loop for crossfade particle pause (D-11)
+- [Phase 05-visual-polish]: useEffect return undefined explicitly on no-change branch to satisfy TS7030
+- [Phase 05-visual-polish]: Crossfade wraps scrollable content only; header stays fixed so location name visible during 250ms transition
+- [Phase 05-visual-polish]: fading || loading drives opacity-0 to cover both cached-hit and first-visit location switches
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T13:45:32.774Z
-Stopped at: Completed 05-visual-polish 05-01-PLAN.md
+Last session: 2026-04-10T13:49:15.238Z
+Stopped at: Completed 05-visual-polish 05-02-PLAN.md (awaiting human-verify checkpoint)
 Resume file: None

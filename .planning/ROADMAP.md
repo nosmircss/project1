@@ -27,7 +27,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 - [x] **Phase 3: Location Persistence** - Saved locations survive app restarts; full add/switch/delete lifecycle backed by electron-conf IPC (completed 2026-03-02)
 - [x] **Phase 4: Hourly Forecast + Auto-Refresh** - 12-hour scrollable forecast strip and configurable auto-refresh with last-updated timestamp and countdown (completed 2026-03-05, verified 2026-04-10)
-- [ ] **Phase 5: Visual Polish** - Animated weather particle effects and smooth location-switch transitions
+- [x] **Phase 5: Visual Polish** - Animated weather particle effects and smooth location-switch transitions (completed 2026-04-10)
 - [ ] **Phase 6: Windows Installer** - NSIS `.exe` installer with SmartScreen bypass documentation
 
 ## Phase Details
@@ -69,10 +69,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. The app displays animated weather particle effects (raindrops, snowflakes, fog wisps, etc.) that match the current weather condition for the active location, with no measurable CPU impact at idle on integrated graphics
   2. Switching between saved locations produces a smooth fade transition — no abrupt content flash, layout jump, or momentary display of the previous location's data under the new location's name
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 05-01-PLAN.md — Particle system engine (WMO-to-effect mapping, particle physics/draw logic, WeatherParticles canvas component)
-- [ ] 05-02-PLAN.md — WeatherPanel integration (canvas overlay mount, crossfade transition, visual verification)
+- [x] 05-02-PLAN.md — WeatherPanel integration (canvas overlay mount, crossfade transition, visual verification)
 
 ### Phase 6: Windows Installer
 **Goal**: WeatherDeck ships as a self-contained NSIS `.exe` that any Windows 10/11 user can install from a clean machine — with the SmartScreen bypass process clearly documented
@@ -94,5 +94,5 @@ Phases execute in numeric order: 3 → 4 → 5 → 6
 | 2. Full Conditions + Settings | v1.0 | 3/3 | Complete | 2026-03-01 |
 | 3. Location Persistence | v1.1 | 2/2 | Complete | 2026-03-02 |
 | 4. Hourly Forecast + Auto-Refresh | v1.1 | 4/4 | Complete | 2026-03-05 |
-| 5. Visual Polish | v1.1 | 1/2 | In Progress|  |
+| 5. Visual Polish | v1.1 | 2/2 | Complete   | 2026-04-10 |
 | 6. Windows Installer | v1.1 | 0/TBD | Not started | - |
