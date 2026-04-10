@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Feature Complete
-status: Phase 04-hourly-forecast-auto-refresh — ALL REQUIREMENTS MET (HOUR-01/02/03, REFR-01/02/03)
-stopped_at: Phase 5 context gathered
-last_updated: "2026-04-10T13:22:59.016Z"
-last_activity: 2026-04-10 — Retroactive verification of 04-04 (integration already done 2026-03-05)
+status: Ready to execute
+stopped_at: Completed 05-visual-polish 05-01-PLAN.md
+last_updated: "2026-04-10T13:45:32.775Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
-  percent: 80
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Users can glance at their desktop and instantly know current weather and the next several hours — accurate, beautiful, and always up to date.
-**Current focus:** Phase 3 — Location Persistence (ready to plan)
+**Current focus:** Phase 05 — visual-polish
 
 ## Current Position
 
-Phase: 4 of 6 (Hourly Forecast Auto-Refresh) — COMPLETE
-Plan: 4 of 4 complete (04-04 integration and verification)
-Status: Phase 04-hourly-forecast-auto-refresh — ALL REQUIREMENTS MET (HOUR-01/02/03, REFR-01/02/03)
-Last activity: 2026-04-10 — Retroactive verification of 04-04 (integration already done 2026-03-05)
-
-Progress: [████████░░] 80% (v1.1 phases — 4/5 content phases done, Phase 5 next)
+Phase: 05 (visual-polish) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -54,6 +48,7 @@ Progress: [████████░░] 80% (v1.1 phases — 4/5 content phas
 | 04-hourly-forecast-auto-refresh | 04-01 | 1min | 2 | 5 |
 | 04-hourly-forecast-auto-refresh | 04-02 | 1min | 2 | 2 |
 | 04-hourly-forecast-auto-refresh | 04-03 | 2min | 2 | 4 |
+| Phase 05-visual-polish P05-01 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -87,6 +82,9 @@ Key patterns carried forward:
 - [Phase 04-hourly-forecast-auto-refresh]: temperatureUnit prop on HourlyStrip received but unit symbol omitted per-column — keeps columns compact; unit label shown once in header
 - [Phase 04-hourly-forecast-auto-refresh]: Droplets icon at 10px added to precipitation % in HourlyStrip for visual clarity
 - [Phase 04-hourly-forecast-auto-refresh]: SettingsModal select uses appearance-none — removes browser default arrow for consistent neon styling
+- [Phase 05-visual-polish]: Particle pool initialized once and mutated in-place each frame to avoid GC pressure in RAF loop
+- [Phase 05-visual-polish]: getEffectConfig uses code <= N range comparisons matching weatherCodeMap.ts pattern for safe WMO gap code handling
+- [Phase 05-visual-polish]: WeatherParticles active=false path clears canvas and skips RAF loop for crossfade particle pause (D-11)
 
 ### Pending Todos
 
@@ -100,6 +98,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T13:22:59.011Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-visual-polish/05-CONTEXT.md
+Last session: 2026-04-10T13:45:32.774Z
+Stopped at: Completed 05-visual-polish 05-01-PLAN.md
+Resume file: None
