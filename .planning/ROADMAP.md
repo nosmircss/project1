@@ -26,7 +26,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 **Milestone Goal:** Add auto-refresh, hourly forecast, multi-location management, animated weather effects, and a distributable Windows installer.
 
 - [x] **Phase 3: Location Persistence** - Saved locations survive app restarts; full add/switch/delete lifecycle backed by electron-conf IPC (completed 2026-03-02)
-- [ ] **Phase 4: Hourly Forecast + Auto-Refresh** - 12-hour scrollable forecast strip and configurable auto-refresh with last-updated timestamp and countdown
+- [x] **Phase 4: Hourly Forecast + Auto-Refresh** - 12-hour scrollable forecast strip and configurable auto-refresh with last-updated timestamp and countdown (completed 2026-03-05, verified 2026-04-10)
 - [ ] **Phase 5: Visual Polish** - Animated weather particle effects and smooth location-switch transitions
 - [ ] **Phase 6: Windows Installer** - NSIS `.exe` installer with SmartScreen bypass documentation
 
@@ -55,12 +55,12 @@ Plans:
   2. When the user switches to a different saved location, the hourly forecast updates immediately to reflect the new location's data
   3. Weather data refreshes automatically at the configured interval (default 5 minutes) without any user action — the displayed conditions visibly update when a refresh completes
   4. The app shows the time of the last successful data refresh and a live countdown to the next refresh, both visible at all times
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
-- [ ] 04-01-PLAN.md — API extension (hourly params + visibility IPC bridge)
-- [ ] 04-02-PLAN.md — useInterval hook + useWeather refactor (auto-refresh, hourly slicing, per-location cache)
-- [ ] 04-03-PLAN.md — UI components (HourlyStrip, RefreshIndicator, SkeletonLoader, SettingsModal dropdown)
-- [ ] 04-04-PLAN.md — Integration (WeatherPanel + App.tsx wiring) + human verification
+- [x] 04-01-PLAN.md — API extension (hourly params + visibility IPC bridge)
+- [x] 04-02-PLAN.md — useInterval hook + useWeather refactor (auto-refresh, hourly slicing, per-location cache)
+- [x] 04-03-PLAN.md — UI components (HourlyStrip, RefreshIndicator, SkeletonLoader, SettingsModal dropdown)
+- [x] 04-04-PLAN.md — Integration (WeatherPanel + App.tsx wiring) + verification
 
 ### Phase 5: Visual Polish
 **Goal**: The app delivers an immersive sci-fi experience — animated weather particles match current conditions, and switching locations produces a smooth visual transition rather than an abrupt content swap
@@ -90,6 +90,6 @@ Phases execute in numeric order: 3 → 4 → 5 → 6
 | 1. Foundation | v1.0 | 3/3 | Complete | 2026-03-01 |
 | 2. Full Conditions + Settings | v1.0 | 3/3 | Complete | 2026-03-01 |
 | 3. Location Persistence | v1.1 | 2/2 | Complete | 2026-03-02 |
-| 4. Hourly Forecast + Auto-Refresh | 3/4 | In Progress|  | - |
+| 4. Hourly Forecast + Auto-Refresh | v1.1 | 4/4 | Complete | 2026-03-05 |
 | 5. Visual Polish | v1.1 | 0/TBD | Not started | - |
 | 6. Windows Installer | v1.1 | 0/TBD | Not started | - |
