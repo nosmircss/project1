@@ -152,6 +152,9 @@ export function WeatherPanel({
           weatherCode={effectiveCode}
           isDay={effectiveIsDay}
           active={!fading}
+          windSpeed={weather.windSpeed}
+          windDirection={weather.windDirection}
+          windSpeedUnit={settings.windSpeedUnit}
         />
 
         {/* Header: location name + RefreshIndicator + gear icon — stays fixed during crossfade */}

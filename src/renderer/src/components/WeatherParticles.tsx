@@ -14,7 +14,7 @@ interface WeatherParticlesProps {
   active: boolean // false during location switch crossfade — pauses and clears particles per D-11
   windSpeed?: number
   windDirection?: number
-  windUnit?: 'mph' | 'kmh'
+  windSpeedUnit?: 'mph' | 'kmh'
 }
 
 /**
@@ -32,7 +32,7 @@ export function WeatherParticles({
   active,
   windSpeed = 0,
   windDirection = 0,
-  windUnit = 'mph'
+  windSpeedUnit = 'mph'
 }: WeatherParticlesProps): React.JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef<number>(0)
@@ -79,7 +79,7 @@ export function WeatherParticles({
     // Reset flash state when effect changes
     flashRef.current = 0
 
-    const wind = computeWindFactor(windSpeed, windDirection, windUnit)
+    const wind = computeWindFactor(windSpeed, windDirection, windSpeedUnit)
 
     const tick = (): void => {
       const w = canvas.offsetWidth
@@ -128,7 +128,7 @@ export function WeatherParticles({
       rafRef.current = 0
       observer.disconnect()
     }
-  }, [weatherCode, isDay, active, windSpeed, windDirection, windUnit])
+  }, [weatherCode, isDay, active, windSpeed, windDirection, windSpeedUnit])
 
   return (
     <canvas
