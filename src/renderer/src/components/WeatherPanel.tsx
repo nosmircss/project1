@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Settings } from 'lucide-react'
 import { getWeatherDisplay } from '../lib/weatherCodeMap'
 import { WeatherIcon } from './WeatherIcon'
@@ -9,6 +9,7 @@ import { ConditionsGrid } from './ConditionsGrid'
 import { SettingsModal } from './SettingsModal'
 import { HourlyStrip } from './HourlyStrip'
 import { RefreshIndicator } from './RefreshIndicator'
+import { WeatherParticles } from './WeatherParticles'
 import type { WeatherData, AppSettings, HourlySlice } from '../lib/types'
 
 interface WeatherPanelProps {
@@ -51,10 +52,24 @@ export function WeatherPanel({
 }: WeatherPanelProps): React.JSX.Element {
   const [showSettings, setShowSettings] = useState(false)
 
+  // Crossfade: detect activeZip change and trigger fade per D-10
+  const prevZipRef = useRef(activeZip)
+  const [fading, setFading] = useState(false)
+
+  useEffect(() => {
+    if (prevZipRef.current !== activeZip) {
+      prevZipRef.current = activeZip
+      setFading(true)
+      const id = setTimeout(() => setFading(false), 250)
+      return () => clearTimeout(id)
+    }
+    return undefined
+  }, [activeZip])
+
   // Loading with no data yet — show skeleton
   if (loading && !weather) {
     return (
-      <main className="flex-1 flex flex-col bg-bg-panel overflow-y-auto">
+      <main className="relative flex-1 flex flex-col bg-bg-panel overflow-y-auto">
         {/* Header with gear icon (always rendered) */}
         <div className="flex items-center justify-between px-6 pt-5 pb-2">
           <span className="text-text-secondary font-sans text-sm tracking-wide uppercase">
@@ -83,7 +98,7 @@ export function WeatherPanel({
   // Error with no data — show error card
   if (error && !weather) {
     return (
-      <main className="flex-1 flex flex-col bg-bg-panel overflow-y-auto">
+      <main className="relative flex-1 flex flex-col bg-bg-panel overflow-y-auto">
         <div className="flex items-center justify-between px-6 pt-5 pb-2">
           <span className="text-text-secondary font-sans text-sm tracking-wide uppercase">
             {locationName}
@@ -111,8 +126,15 @@ export function WeatherPanel({
     const { Icon, label } = getWeatherDisplay(weather.weatherCode, weather.isDay)
 
     return (
-      <main className="flex-1 flex flex-col bg-bg-panel overflow-y-auto">
-        {/* Header: location name + RefreshIndicator + gear icon */}
+      <main className="relative flex-1 flex flex-col bg-bg-panel overflow-y-auto">
+        {/* Particle canvas overlay — position:absolute over this relative container (D-05, D-06) */}
+        <WeatherParticles
+          weatherCode={weather.weatherCode}
+          isDay={weather.isDay}
+          active={!fading}
+        />
+
+        {/* Header: location name + RefreshIndicator + gear icon — stays fixed during crossfade */}
         <div className="flex items-center justify-between px-6 pt-5 pb-2">
           <span className="text-text-secondary font-sans text-sm tracking-wide uppercase">
             {locationName}
@@ -133,38 +155,41 @@ export function WeatherPanel({
           </div>
         </div>
 
-        {/* Hero section */}
-        <div className="flex flex-col items-center gap-6 px-8 pt-4 pb-6 text-center">
-          <WeatherIcon Icon={Icon} size={64} />
-          <p className="text-neon-magenta font-sans text-sm neon-text-glow-magenta tracking-wide">
-            {label}
-          </p>
-          <TemperatureHero
-            temperature={weather.temperature}
-            feelsLike={weather.feelsLike}
-            units={weather.units.temperature}
-          />
-          {error && (
-            <p className="text-warning text-sm font-mono">Data may be outdated</p>
+        {/* Crossfade wrapper per D-10 — 250ms opacity transition on location switch */}
+        <div className={`flex-1 flex flex-col transition-opacity duration-[250ms] ease-in-out ${fading || loading ? 'opacity-0' : 'opacity-100'}`}>
+          {/* Hero section */}
+          <div className="flex flex-col items-center gap-6 px-8 pt-4 pb-6 text-center">
+            <WeatherIcon Icon={Icon} size={64} />
+            <p className="text-neon-magenta font-sans text-sm neon-text-glow-magenta tracking-wide">
+              {label}
+            </p>
+            <TemperatureHero
+              temperature={weather.temperature}
+              feelsLike={weather.feelsLike}
+              units={weather.units.temperature}
+            />
+            {error && (
+              <p className="text-warning text-sm font-mono">Data may be outdated</p>
+            )}
+          </div>
+
+          {/* Hourly forecast strip — between hero section and conditions grid */}
+          {hourly.length > 0 && (
+            <HourlyStrip
+              hours={hourly}
+              locationZip={activeZip}
+              temperatureUnit={weather.units.temperature}
+            />
           )}
+
+          {/* Conditions grid — 6 metric cards */}
+          <ConditionsGrid weather={weather} />
+
+          {/* Bottom padding */}
+          <div className="pb-6" />
         </div>
 
-        {/* Hourly forecast strip — between hero section and conditions grid */}
-        {hourly.length > 0 && (
-          <HourlyStrip
-            hours={hourly}
-            locationZip={activeZip}
-            temperatureUnit={weather.units.temperature}
-          />
-        )}
-
-        {/* Conditions grid — 6 metric cards */}
-        <ConditionsGrid weather={weather} />
-
-        {/* Bottom padding */}
-        <div className="pb-6" />
-
-        {/* Settings modal — rendered above everything */}
+        {/* Settings modal — rendered above everything, outside crossfade wrapper */}
         {showSettings && (
           <SettingsModal settings={settings} onUpdate={onSettingsChange} onClose={() => setShowSettings(false)} />
         )}
