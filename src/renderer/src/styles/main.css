@@ -71,6 +71,22 @@ body {
   overflow: hidden;
 }
 
+.app-frame {
+  border: 1px solid #111827;
+}
+
+.window-drag {
+  -webkit-app-region: drag;
+}
+
+.window-no-drag,
+button,
+input,
+select,
+textarea {
+  -webkit-app-region: no-drag;
+}
+
 /* Scrollbar styling for neon theme */
 ::-webkit-scrollbar {
   width: 6px;

@@ -5,6 +5,18 @@ import { useLocations } from './hooks/useLocations'
 import { WelcomeScreen } from './components/WelcomeScreen'
 import { Sidebar } from './components/Sidebar'
 import { WeatherPanel } from './components/WeatherPanel'
+import { TitleBar } from './components/TitleBar'
+
+function AppFrame({ children }: { children: React.ReactNode }): React.JSX.Element {
+  return (
+    <div className="app-frame flex h-screen flex-col overflow-hidden bg-bg-dark">
+      <TitleBar />
+      <div className="flex min-h-0 flex-1 bg-bg-dark cyber-grid overflow-hidden">
+        {children}
+      </div>
+    </div>
+  )
+}
 
 /**
  * Root application component.
@@ -54,9 +66,9 @@ function App(): React.JSX.Element {
   // hasLaunched remains false until the very first location is successfully saved
   if (!hasLaunched) {
     return (
-      <div className="h-screen flex bg-bg-dark cyber-grid overflow-hidden">
+      <AppFrame>
         <WelcomeScreen onLocationAdd={handleAdd} />
-      </div>
+      </AppFrame>
     )
   }
 
@@ -64,7 +76,7 @@ function App(): React.JSX.Element {
   // Per locked decision: sidebar visible with "No locations saved" — NOT WelcomeScreen
   if (locations.length === 0) {
     return (
-      <div className="h-screen flex bg-bg-dark cyber-grid overflow-hidden">
+      <AppFrame>
         <Sidebar
           locations={[]}
           activeIndex={-1}
@@ -76,7 +88,7 @@ function App(): React.JSX.Element {
           <p className="font-mono text-text-secondary text-base mb-2">No locations saved</p>
           <p className="font-mono text-text-dim text-sm">Add a zip code to get started</p>
         </main>
-      </div>
+      </AppFrame>
     )
   }
 
@@ -84,7 +96,7 @@ function App(): React.JSX.Element {
   const activeIndex = locations.findIndex((l) => l.zip === activeZip)
 
   return (
-    <div className="h-screen flex bg-bg-dark cyber-grid overflow-hidden">
+    <AppFrame>
       <Sidebar
         locations={locations}
         activeIndex={activeIndex >= 0 ? activeIndex : 0}
@@ -106,7 +118,7 @@ function App(): React.JSX.Element {
         settings={settings}
         onSettingsChange={updateSetting}
       />
-    </div>
+    </AppFrame>
   )
 }
 

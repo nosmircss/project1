@@ -18,6 +18,9 @@ interface ElectronBridgeAPI {
   addLocation: (location: LocationData) => Promise<{ ok?: boolean; error?: string }>
   deleteLocation: (zip: string) => Promise<void>
   setActiveLocation: (zip: string | null) => Promise<void>
+  minimizeWindow: () => void
+  toggleMaximizeWindow: () => void
+  closeWindow: () => void
   onWindowVisibility: (cb: (visible: boolean) => void) => () => void
 }
 

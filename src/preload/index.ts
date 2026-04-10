@@ -17,6 +17,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('locations:add', location),
   deleteLocation: (zip: string) => ipcRenderer.invoke('locations:delete', zip),
   setActiveLocation: (zip: string | null) => ipcRenderer.invoke('locations:set-active', zip),
+  minimizeWindow: () => ipcRenderer.send('window:minimize'),
+  toggleMaximizeWindow: () => ipcRenderer.send('window:toggle-maximize'),
+  closeWindow: () => ipcRenderer.send('window:close'),
   onWindowVisibility: (cb: (visible: boolean) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, visible: boolean): void => cb(visible)
     ipcRenderer.on('window:visibility', listener)

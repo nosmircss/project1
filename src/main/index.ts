@@ -15,6 +15,7 @@ function createWindow(): void {
     minWidth: 966,
     minHeight: 897,
     resizable: true,
+    frame: false,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#0a0a12',
@@ -121,6 +122,25 @@ app.whenReady().then(() => {
     lastActiveZip: locationsConf.get('lastActiveZip'),
     hasLaunched: locationsConf.get('hasLaunched')
   }))
+
+  ipcMain.on('window:minimize', (event) => {
+    BrowserWindow.fromWebContents(event.sender)?.minimize()
+  })
+
+  ipcMain.on('window:toggle-maximize', (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    if (!window) return
+
+    if (window.isMaximized()) {
+      window.unmaximize()
+    } else {
+      window.maximize()
+    }
+  })
+
+  ipcMain.on('window:close', (event) => {
+    BrowserWindow.fromWebContents(event.sender)?.close()
+  })
 
   ipcMain.on('ping', () => console.log('pong'))
 
