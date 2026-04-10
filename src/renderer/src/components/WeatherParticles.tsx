@@ -3,7 +3,8 @@ import {
   getEffectConfig,
   createParticle,
   updateParticle,
-  drawParticle
+  drawParticle,
+  computeWindFactor
 } from '../lib/particleEffects'
 import type { Particle } from '../lib/particleEffects'
 
@@ -11,6 +12,9 @@ interface WeatherParticlesProps {
   weatherCode: number
   isDay: boolean
   active: boolean // false during location switch crossfade — pauses and clears particles per D-11
+  windSpeed?: number
+  windDirection?: number
+  windUnit?: 'mph' | 'kmh'
 }
 
 /**
@@ -25,12 +29,16 @@ interface WeatherParticlesProps {
 export function WeatherParticles({
   weatherCode,
   isDay,
-  active
+  active,
+  windSpeed = 0,
+  windDirection = 0,
+  windUnit = 'mph'
 }: WeatherParticlesProps): React.JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef<number>(0)
   const particlesRef = useRef<Particle[]>([])
   const flashRef = useRef<number>(0) // lightning flash intensity for thunder effect (D-08)
+  const frameRef = useRef<number>(0)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -71,9 +79,12 @@ export function WeatherParticles({
     // Reset flash state when effect changes
     flashRef.current = 0
 
+    const wind = computeWindFactor(windSpeed, windDirection, windUnit)
+
     const tick = (): void => {
       const w = canvas.offsetWidth
       const h = canvas.offsetHeight
+      const frame = frameRef.current++
 
       ctx.clearRect(0, 0, w, h)
 
@@ -83,8 +94,8 @@ export function WeatherParticles({
 
       // Update and draw all particles
       for (const p of particlesRef.current) {
-        updateParticle(p, config.effect, w, h)
-        drawParticle(ctx, p, config.effect, config)
+        updateParticle(p, config.effect, w, h, wind)
+        drawParticle(ctx, p, config.effect, config, frame)
       }
 
       // Reset shadow and alpha after batch draw
@@ -117,7 +128,7 @@ export function WeatherParticles({
       rafRef.current = 0
       observer.disconnect()
     }
-  }, [weatherCode, isDay, active])
+  }, [weatherCode, isDay, active, windSpeed, windDirection, windUnit])
 
   return (
     <canvas

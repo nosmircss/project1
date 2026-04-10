@@ -29,6 +29,13 @@ export interface Particle {
   size: number // radius or length
   opacity: number // 0-1
   life: number // remaining life for ambient particles (frames)
+  length: number // streak length (rain/drizzle)
+  width: number // stroke width (rain/drizzle)
+  pulsePhase: number // phase offset for glow oscillation (snow/ambient)
+  wobbleAmp: number // wobble amplitude (snow heavy)
+  twinkleSpeed: number // twinkle oscillation speed (ambient night)
+  splashX: number // x position of last splash (rain heavy)
+  splashLife: number // remaining splash animation frames (rain heavy)
 }
 
 // Neon theme color tokens from src/renderer/src/styles/main.css
@@ -136,65 +143,149 @@ export function createParticle(
   const rand = Math.random
 
   switch (effect) {
-    case 'rain-light':
-    case 'rain-heavy':
-    case 'thunder': {
-      const speed = effect === 'rain-heavy' || effect === 'thunder' ? 6 : 4
+    case 'rain-light': {
       return {
         x: rand() * canvasW,
         y: rand() * canvasH,
-        vx: speed * 0.15,
-        vy: speed,
+        vx: 0.2,
+        vy: 3 + rand() * 2,
+        size: 1,
+        opacity: 0.4 + rand() * 0.4,
+        life: 0,
+        length: 8 + rand() * 12,
+        width: 0.8 + rand() * 0.5,
+        pulsePhase: 0,
+        wobbleAmp: 0,
+        twinkleSpeed: 0,
+        splashX: 0,
+        splashLife: 0
+      }
+    }
+    case 'rain-heavy':
+    case 'thunder': {
+      return {
+        x: rand() * canvasW,
+        y: rand() * canvasH,
+        vx: 1.2,
+        vy: 6 + rand() * 3,
         size: 1.5,
-        opacity: 0.7 + rand() * 0.3,
-        life: 0
+        opacity: 0.5 + rand() * 0.5,
+        life: 0,
+        length: 16 + rand() * 14,
+        width: 1.2 + rand() * 1,
+        pulsePhase: 0,
+        wobbleAmp: 0,
+        twinkleSpeed: 0,
+        splashX: 0,
+        splashLife: 0
       }
     }
     case 'drizzle': {
       return {
         x: rand() * canvasW,
         y: rand() * canvasH,
-        vx: 2 * 0.1,
-        vy: 2 + rand(),
+        vx: (rand() - 0.5) * 0.3,
+        vy: 1.2 + rand(),
         size: 1,
-        opacity: 0.5 + rand() * 0.3,
-        life: 0
+        opacity: 0.3 + rand() * 0.3,
+        life: 0,
+        length: 3 + rand() * 4,
+        width: 0.7,
+        pulsePhase: 0,
+        wobbleAmp: 0,
+        twinkleSpeed: 0,
+        splashX: 0,
+        splashLife: 0
       }
     }
-    case 'snow-light':
-    case 'snow-heavy': {
-      const life = rand() * 1000
+    case 'snow-light': {
       return {
         x: rand() * canvasW,
         y: rand() * canvasH,
         vx: 0,
-        vy: effect === 'snow-heavy' ? 1.2 : 0.8,
-        size: effect === 'snow-heavy' ? 2 + rand() * 2 : 1.5 + rand() * 1.5,
-        opacity: 0.6 + rand() * 0.4,
-        life
+        vy: 0.4 + rand() * 0.4,
+        size: 1 + rand() * 1.5,
+        opacity: 0.4 + rand() * 0.3,
+        life: rand() * 1000,
+        length: 0,
+        width: 0,
+        pulsePhase: rand() * Math.PI * 2,
+        wobbleAmp: 0,
+        twinkleSpeed: 0,
+        splashX: 0,
+        splashLife: 0
+      }
+    }
+    case 'snow-heavy': {
+      return {
+        x: rand() * canvasW,
+        y: rand() * canvasH,
+        vx: 0,
+        vy: 0.8 + rand() * 0.8,
+        size: 2 + rand() * 3,
+        opacity: 0.5 + rand() * 0.4,
+        life: rand() * 1000,
+        length: 0,
+        width: 0,
+        pulsePhase: rand() * Math.PI * 2,
+        wobbleAmp: 0.5 + rand() * 1,
+        twinkleSpeed: 0,
+        splashX: 0,
+        splashLife: 0
       }
     }
     case 'fog': {
       return {
-        x: -canvasW * 0.4,
-        y: rand() * canvasH,
-        vx: 0.2,
+        x: rand() * canvasW * 1.5 - canvasW * 0.25,
+        y: canvasH * 0.2 + rand() * canvasH * 0.6,
+        vx: 0.1 + rand() * 0.2,
         vy: 0,
-        size: 3,
-        opacity: 0.06 + rand() * 0.02,
-        life: 0
+        size: canvasW * 0.15 + rand() * canvasW * 0.2,
+        opacity: 0.03 + rand() * 0.03,
+        life: rand() * Math.PI * 2,
+        length: 0,
+        width: 0,
+        pulsePhase: rand() * Math.PI * 2,
+        wobbleAmp: 0,
+        twinkleSpeed: 0,
+        splashX: 0,
+        splashLife: 0
       }
     }
-    case 'ambient-day':
+    case 'ambient-day': {
+      return {
+        x: rand() * canvasW,
+        y: canvasH * 0.3 + rand() * canvasH * 0.7,
+        vx: (rand() - 0.5) * 0.2,
+        vy: -0.1 - rand() * 0.15,
+        size: 1 + rand() * 1.5,
+        opacity: 0.3 + rand() * 0.4,
+        life: 80 + Math.floor(rand() * 160),
+        length: 0,
+        width: 0,
+        pulsePhase: rand() * Math.PI * 2,
+        wobbleAmp: 0,
+        twinkleSpeed: 0,
+        splashX: 0,
+        splashLife: 0
+      }
+    }
     case 'ambient-night': {
       return {
         x: rand() * canvasW,
         y: rand() * canvasH,
-        vx: (rand() - 0.5) * 0.3,
-        vy: (rand() - 0.5) * 0.3,
-        size: 1 + rand() * 1.5,
-        opacity: 0.3 + rand() * 0.4,
-        life: 60 + Math.floor(rand() * 120)
+        vx: (rand() - 0.5) * 0.08,
+        vy: (rand() - 0.5) * 0.08,
+        size: 0.8 + rand() * 1.2,
+        opacity: 0.2 + rand() * 0.5,
+        life: 100 + Math.floor(rand() * 200),
+        length: 0,
+        width: 0,
+        pulsePhase: rand() * Math.PI * 2,
+        wobbleAmp: 0,
+        twinkleSpeed: 0.02 + rand() * 0.04,
+        splashX: 0,
+        splashLife: 0
       }
     }
   }
@@ -208,56 +299,122 @@ export function updateParticle(
   p: Particle,
   effect: ParticleEffect,
   canvasW: number,
-  canvasH: number
+  canvasH: number,
+  wind: WindFactor
 ): void {
   switch (effect) {
     case 'rain-light':
-    case 'rain-heavy':
-    case 'thunder':
-    case 'drizzle':
-      p.x += p.vx
+      p.x += p.vx + wind.dx * 0.5
       p.y += p.vy
-      // Wrap: respawn from top when it exits the bottom
       if (p.y > canvasH + 10) {
         p.y = -10
         p.x = Math.random() * canvasW
+        p.length = 8 + Math.random() * 12
+        p.opacity = 0.4 + Math.random() * 0.4
       }
-      // Wrap horizontal edges
       if (p.x > canvasW + 10) p.x = -10
+      if (p.x < -10) p.x = canvasW + 10
+      break
+
+    case 'rain-heavy':
+    case 'thunder':
+      if (p.splashLife > 0) p.splashLife -= 0.15
+      p.x += p.vx + wind.dx * 0.8
+      p.y += p.vy
+      if (p.y > canvasH - 4) {
+        p.splashX = p.x
+        p.splashLife = 6
+        p.y = -10
+        p.x = Math.random() * canvasW
+        p.length = 16 + Math.random() * 14
+        p.opacity = 0.5 + Math.random() * 0.5
+      }
+      if (p.x > canvasW + 10) p.x = -10
+      if (p.x < -10) p.x = canvasW + 10
+      break
+
+    case 'drizzle':
+      p.x += p.vx + wind.dx * 0.3
+      p.y += p.vy
+      if (p.y > canvasH + 5) {
+        p.y = -5
+        p.x = Math.random() * canvasW
+        p.vx = (Math.random() - 0.5) * 0.3
+      }
+      if (p.x > canvasW + 10) p.x = -10
+      if (p.x < -10) p.x = canvasW + 10
       break
 
     case 'snow-light':
-    case 'snow-heavy':
-      // Snow wobbles horizontally via sine wave on life counter
       p.life += 1
-      p.x += Math.sin(p.life * 0.05) * 0.5
+      p.x += Math.sin(p.life * 0.03) * 0.4 + wind.dx * 0.4
       p.y += p.vy
       if (p.y > canvasH + 10) {
         p.y = -10
         p.x = Math.random() * canvasW
         p.life = Math.random() * 1000
       }
+      if (p.x > canvasW + 10) p.x = -10
+      if (p.x < -10) p.x = canvasW + 10
+      break
+
+    case 'snow-heavy':
+      p.life += 1
+      p.x += Math.sin(p.life * 0.025) * p.wobbleAmp + wind.dx * 0.6
+      p.y += p.vy
+      if (p.y > canvasH + 10) {
+        p.y = -10
+        p.x = Math.random() * canvasW
+        p.life = Math.random() * 1000
+      }
+      if (p.x > canvasW + 10) p.x = -10
+      if (p.x < -10) p.x = canvasW + 10
       break
 
     case 'fog':
-      p.x += p.vx
-      // Wrap fog layers: once fully across, reset to left
-      if (p.x > canvasW) {
-        p.x = -canvasW * 0.4
-        p.y = Math.random() * canvasH
+      p.x += p.vx + wind.dx * 0.3
+      p.y += Math.sin(p.life + p.pulsePhase) * 0.15
+      p.life += 0.005
+      if (p.x - p.size > canvasW) {
+        p.x = -p.size
+        p.y = canvasH * 0.2 + Math.random() * canvasH * 0.6
+      }
+      if (p.x + p.size < -p.size) {
+        p.x = canvasW + p.size
+        p.y = canvasH * 0.2 + Math.random() * canvasH * 0.6
       }
       break
 
     case 'ambient-day':
+      p.x += p.vx
+      p.y += p.vy
+      p.life -= 1
+      if (p.life < 30) {
+        p.opacity = Math.max(0, p.opacity - 0.012)
+      }
+      if (
+        p.life <= 0 ||
+        p.x < 0 ||
+        p.x > canvasW ||
+        p.y < 0 ||
+        p.y > canvasH
+      ) {
+        p.x = Math.random() * canvasW
+        p.y = canvasH * 0.3 + Math.random() * canvasH * 0.7
+        p.vx = (Math.random() - 0.5) * 0.2
+        p.vy = -0.1 - Math.random() * 0.15
+        p.opacity = 0.3 + Math.random() * 0.4
+        p.life = 80 + Math.floor(Math.random() * 160)
+      }
+      break
+
     case 'ambient-night':
       p.x += p.vx
       p.y += p.vy
       p.life -= 1
-      // Fade out near end of life
       if (p.life < 30) {
-        p.opacity = Math.max(0, p.opacity - 0.01)
+        p.opacity = Math.max(0, p.opacity - 0.012)
       }
-      // Respawn when life is exhausted or exits canvas
       if (
         p.life <= 0 ||
         p.x < 0 ||
@@ -267,10 +424,10 @@ export function updateParticle(
       ) {
         p.x = Math.random() * canvasW
         p.y = Math.random() * canvasH
-        p.vx = (Math.random() - 0.5) * 0.3
-        p.vy = (Math.random() - 0.5) * 0.3
-        p.opacity = 0.3 + Math.random() * 0.4
-        p.life = 60 + Math.floor(Math.random() * 120)
+        p.vx = (Math.random() - 0.5) * 0.08
+        p.vy = (Math.random() - 0.5) * 0.08
+        p.opacity = 0.2 + Math.random() * 0.5
+        p.life = 100 + Math.floor(Math.random() * 200)
       }
       break
   }
@@ -281,63 +438,194 @@ export function updateParticle(
  * Each effect uses its own visual style:
  *   Rain/drizzle: thin diagonal streak with neon glow
  *   Snow: soft dot with bloom
- *   Fog: translucent horizontal rectangle
+ *   Fog: translucent radial gradient blob
  *   Ambient: small glowing mote
  */
 export function drawParticle(
   ctx: CanvasRenderingContext2D,
   p: Particle,
   effect: ParticleEffect,
-  config: EffectConfig
+  config: EffectConfig,
+  frame: number
 ): void {
   ctx.save()
 
   switch (effect) {
-    case 'rain-light':
-    case 'rain-heavy':
-    case 'thunder':
-    case 'drizzle':
+    case 'rain-light': {
+      const windVx = p.vx
       ctx.beginPath()
       ctx.moveTo(p.x, p.y)
-      ctx.lineTo(p.x + p.vx * 3, p.y + p.vy * 3)
+      ctx.lineTo(p.x + windVx * 2, p.y + p.length)
       ctx.strokeStyle = config.color
-      ctx.lineWidth = effect === 'drizzle' ? 1 : 1.5
+      ctx.lineWidth = p.width
       ctx.globalAlpha = p.opacity
       ctx.shadowColor = config.color
-      ctx.shadowBlur = config.glowSize
+      ctx.shadowBlur = 3
       ctx.stroke()
-      break
-
-    case 'snow-light':
-    case 'snow-heavy':
-      ctx.beginPath()
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-      ctx.fillStyle = config.color
-      ctx.globalAlpha = p.opacity
-      ctx.shadowColor = config.color
-      ctx.shadowBlur = config.glowSize
-      ctx.fill()
-      break
-
-    case 'fog': {
-      const canvasEl = ctx.canvas
-      ctx.fillStyle = config.color
-      ctx.globalAlpha = p.opacity
-      ctx.fillRect(p.x, p.y, canvasEl.offsetWidth * 0.4, p.size)
       break
     }
 
-    case 'ambient-day':
-    case 'ambient-night':
+    case 'rain-heavy':
+    case 'thunder': {
+      const windVx = p.vx
+      ctx.beginPath()
+      ctx.moveTo(p.x, p.y)
+      ctx.lineTo(p.x + windVx * 2, p.y + p.length)
+      ctx.strokeStyle = config.color
+      ctx.lineWidth = p.width
+      ctx.globalAlpha = p.opacity
+      ctx.shadowColor = config.color
+      ctx.shadowBlur = 5
+      ctx.stroke()
+      if (p.splashLife > 0) {
+        const canvasH = ctx.canvas.height / (window.devicePixelRatio || 1)
+        const progress = 1 - p.splashLife / 6
+        ctx.globalAlpha = (1 - progress) * 0.6
+        ctx.shadowBlur = 3
+        ctx.fillStyle = config.color
+        const spread = 2 + Math.random() * 3
+        ctx.beginPath()
+        ctx.arc(p.splashX - spread * progress * 3, canvasH - 2 - progress * 4, 1, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(p.splashX + spread * progress * 3, canvasH - 2 - progress * 4, 1, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      break
+    }
+
+    case 'drizzle': {
+      ctx.beginPath()
+      ctx.moveTo(p.x, p.y)
+      ctx.lineTo(p.x + p.vx * 2, p.y + p.length)
+      ctx.strokeStyle = config.color
+      ctx.lineWidth = p.width
+      ctx.globalAlpha = p.opacity
+      ctx.shadowColor = config.color
+      ctx.shadowBlur = 2
+      ctx.stroke()
+      break
+    }
+
+    case 'snow-light': {
+      const pulse = 0.8 + Math.sin(p.life * 0.04 + p.pulsePhase) * 0.2
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2.5)
+      grad.addColorStop(0, config.color)
+      grad.addColorStop(1, 'transparent')
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2)
+      ctx.fillStyle = grad
+      ctx.globalAlpha = p.opacity * pulse * 0.4
+      ctx.fill()
       ctx.beginPath()
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
       ctx.fillStyle = config.color
-      ctx.globalAlpha = p.opacity * (effect === 'ambient-day' ? 0.4 : 0.3)
-      ctx.shadowColor = config.color
-      ctx.shadowBlur = config.glowSize
+      ctx.globalAlpha = p.opacity * pulse
       ctx.fill()
       break
+    }
+
+    case 'snow-heavy': {
+      const pulse = 0.8 + Math.sin(p.life * 0.04 + p.pulsePhase) * 0.2
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3)
+      grad.addColorStop(0, 'rgba(255,255,255,0.8)')
+      grad.addColorStop(0.4, 'rgba(224,224,255,0.3)')
+      grad.addColorStop(1, 'transparent')
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2)
+      ctx.fillStyle = grad
+      ctx.globalAlpha = p.opacity * pulse * 0.5
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+      ctx.fillStyle = config.color
+      ctx.globalAlpha = p.opacity * pulse
+      ctx.shadowColor = config.color
+      ctx.shadowBlur = 6
+      ctx.fill()
+      break
+    }
+
+    case 'fog': {
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size)
+      grad.addColorStop(0, config.color)
+      grad.addColorStop(0.5, config.color)
+      grad.addColorStop(1, 'transparent')
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+      ctx.fillStyle = grad
+      ctx.globalAlpha = p.opacity
+      ctx.fill()
+      break
+    }
+
+    case 'ambient-day': {
+      const pulse = 0.7 + Math.sin(frame * 0.03 + p.pulsePhase) * 0.3
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3)
+      grad.addColorStop(0, config.color)
+      grad.addColorStop(1, 'transparent')
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2)
+      ctx.fillStyle = grad
+      ctx.globalAlpha = p.opacity * pulse * 0.3
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+      ctx.fillStyle = config.color
+      ctx.globalAlpha = p.opacity * pulse * 0.5
+      ctx.shadowColor = config.color
+      ctx.shadowBlur = 4
+      ctx.fill()
+      break
+    }
+
+    case 'ambient-night': {
+      const twinkle = 0.3 + Math.pow(Math.sin(frame * p.twinkleSpeed + p.pulsePhase), 2) * 0.7
+      let alpha = p.opacity * twinkle
+      if (p.life < 30) alpha *= p.life / 30
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3)
+      grad.addColorStop(0, config.color)
+      grad.addColorStop(1, 'transparent')
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2)
+      ctx.fillStyle = grad
+      ctx.globalAlpha = alpha * 0.3
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+      ctx.fillStyle = config.color
+      ctx.globalAlpha = alpha
+      ctx.fill()
+      if (twinkle > 0.7) {
+        ctx.globalAlpha = (twinkle - 0.7) * alpha * 1.5
+        ctx.strokeStyle = config.color
+        ctx.lineWidth = 0.5
+        ctx.beginPath()
+        ctx.moveTo(p.x - p.size * 2.5, p.y)
+        ctx.lineTo(p.x + p.size * 2.5, p.y)
+        ctx.moveTo(p.x, p.y - p.size * 2.5)
+        ctx.lineTo(p.x, p.y + p.size * 2.5)
+        ctx.stroke()
+      }
+      break
+    }
   }
 
   ctx.restore()
+}
+
+export interface WindFactor {
+  dx: number // horizontal displacement per frame
+}
+
+export function computeWindFactor(
+  windSpeed: number,
+  windDirection: number,
+  unit: 'mph' | 'kmh'
+): WindFactor {
+  const maxSpeed = unit === 'mph' ? 30 : 50
+  const normalized = Math.min(windSpeed / maxSpeed, 1)
+  const radians = (windDirection * Math.PI) / 180
+  const dx = Math.sin(radians) * normalized * 1.5
+  return { dx }
 }
