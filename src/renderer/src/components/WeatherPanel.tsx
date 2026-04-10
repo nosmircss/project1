@@ -36,6 +36,22 @@ interface WeatherPanelProps {
  * isRefreshing=true during background auto-refresh — data updates silently, no skeleton.
  * RefreshIndicator only shown in the weather-data branch (meaningless during loading/error-only).
  */
+// DEV ONLY: Weather code overrides for testing particle effects
+const DEV_WEATHER_CODES = [
+  { code: 0, label: 'Clear (day)' },
+  { code: 0, label: 'Clear (night)', isNight: true },
+  { code: 2, label: 'Partly Cloudy' },
+  { code: 3, label: 'Overcast' },
+  { code: 45, label: 'Fog' },
+  { code: 51, label: 'Drizzle (light)' },
+  { code: 55, label: 'Drizzle (heavy)' },
+  { code: 61, label: 'Rain (light)' },
+  { code: 65, label: 'Rain (heavy)' },
+  { code: 71, label: 'Snow (light)' },
+  { code: 75, label: 'Snow (heavy)' },
+  { code: 95, label: 'Thunderstorm' }
+] as const
+
 export function WeatherPanel({
   loading,
   weather,
@@ -51,6 +67,7 @@ export function WeatherPanel({
   onSettingsChange
 }: WeatherPanelProps): React.JSX.Element {
   const [showSettings, setShowSettings] = useState(false)
+  const [devWeatherOverride, setDevWeatherOverride] = useState<{ code: number; isDay: boolean } | null>(null)
 
   // Crossfade: detect activeZip change and trigger fade per D-10
   const prevZipRef = useRef(activeZip)
@@ -123,14 +140,17 @@ export function WeatherPanel({
 
   // Weather data available (may have stale data warning)
   if (weather) {
-    const { Icon, label } = getWeatherDisplay(weather.weatherCode, weather.isDay)
+    // DEV: apply weather code override if set
+    const effectiveCode = devWeatherOverride?.code ?? weather.weatherCode
+    const effectiveIsDay = devWeatherOverride ? devWeatherOverride.isDay : weather.isDay
+    const { Icon, label } = getWeatherDisplay(effectiveCode, effectiveIsDay)
 
     return (
       <main className="relative flex-1 flex flex-col bg-bg-panel overflow-y-auto">
         {/* Particle canvas overlay — position:absolute over this relative container (D-05, D-06) */}
         <WeatherParticles
-          weatherCode={weather.weatherCode}
-          isDay={weather.isDay}
+          weatherCode={effectiveCode}
+          isDay={effectiveIsDay}
           active={!fading}
         />
 
@@ -188,6 +208,29 @@ export function WeatherPanel({
           {/* Bottom padding */}
           <div className="pb-6" />
         </div>
+
+        {/* DEV ONLY: Weather code override toolbar for testing particle effects */}
+        {import.meta.env.DEV && (
+          <div className="fixed bottom-2 right-2 z-50 flex items-center gap-2 bg-bg-dark/90 border border-border-neon rounded px-2 py-1">
+            <span className="text-text-dim text-[10px] font-mono">DEV</span>
+            <select
+              value={devWeatherOverride ? `${devWeatherOverride.code}:${devWeatherOverride.isDay}` : ''}
+              onChange={(e) => {
+                if (!e.target.value) { setDevWeatherOverride(null); return }
+                const [code, isDay] = e.target.value.split(':')
+                setDevWeatherOverride({ code: Number(code), isDay: isDay === 'true' })
+              }}
+              className="bg-bg-card text-text-secondary text-[10px] font-mono border border-border-neon rounded px-1 py-0.5 appearance-none"
+            >
+              <option value="">Actual weather</option>
+              {DEV_WEATHER_CODES.map((item) => (
+                <option key={`${item.code}-${item.label}`} value={`${item.code}:${'isNight' in item ? 'false' : 'true'}`}>
+                  WMO {item.code}: {item.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Settings modal — rendered above everything, outside crossfade wrapper */}
         {showSettings && (
